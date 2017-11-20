@@ -66,9 +66,9 @@ unsigned long alarm_standby_timeout = 300; //time before siren starts again whil
 #define reboot_count 99
 #define adresa_stare_anterioara_alarma 100 // adresa din eeprom a starii anterioare
 
-boolean enable_alarm = false;
-boolean enable_pir = true;
-boolean enable_reed = true;
+boolean permite_alarm = false;
+boolean permite_pir = true;
+boolean permite_reed = true;
 boolean alarm_armed = false;
 boolean alarm = false;
 
@@ -87,7 +87,7 @@ int prev_sec = 0;
 static int nfc_period = 1000; //nfc read frequency
 
 
-bool menu_enabled = false;
+bool menu_activat = false;
 int menu_option = 0;
 
 long int alarm_timeout_ts;
