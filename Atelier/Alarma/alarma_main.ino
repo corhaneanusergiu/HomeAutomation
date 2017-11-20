@@ -238,6 +238,11 @@ char lcd_welcome_message[20];
 int lcd_status;
 char tmp_char;
 
+// DE REFACUT CODUL PENTRU DS18B20 !!!!!!
+//------ DS18B20 VARIABLES ------
+#define dht_refresh_rate 30000
+dht DHT;
+unsigned long dht_ts;
 
 //============================
 //###### ALARM FUNCTION ######
