@@ -2,6 +2,7 @@
 //
 // v1.0 - 20.11.2017
 //
+//------ INFO -----
 //
 // COMPONENTE
 //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -82,8 +83,8 @@
 #include <avr/wdt.h>
 
 
-//define pins of ARDUINO MEGA 2560
-//--------------------------------
+//------ PINS ARDUINO MEGA 2560 ------
+
 //#define 0 // RX0
 //#define 1 // TX0
 //#define 2 // PWM - INT4
@@ -161,9 +162,10 @@
 // Enable or disable system modules
 #define TEMP_ENABLED 1 //Enable temperature measurement
 #define CS_ENABLED 1 //Enable touch buttons controller
-#define LCD_ENABLED 1 //Enable LCD outpu
-#define NFC_ENABLED 1 //Enable NFC detection
-#define GSM_ENABLED 1 //Enable GSM functions
+#define LCD_ENABLED 1 //Enable LCD output
+#define FIRE_ENABLED 0 //Enable Fire detection
+#define NFC_ENABLED 0 //Enable NFC detection
+#define GSM_ENABLED 0 //Enable GSM functions
 #define SND_ENABLED 1 //Enable sound
 #define WCH_ENABLED 0 //Enable watchdog
 #define REBOOT_CHK 1 //Security mode. If some component fails, after 5 reboot the system enters a safe mode to avoid the siren ring at each reboot (they may be endless!)
@@ -182,7 +184,20 @@
 #define ARMED 2
 #define ALARM 3
 
-// 
+//------ RFID ------ 
+//Declare RFIDs
+§#define TOKEN_NUMBER 0
+static token tokens[] =
+{
+  {{ 111, 111, 111, 111 }, "User 1"},  // RFID #1
+  {{ 111, 111, 111, 111 }, "User 2"},  // RFID #2
+  {{ 111, 111, 111, 111 }, "User 3"},  // RFID #3
+  {{ 111, 111, 111, 111 }, "User 4"},  // RFID #4
+  {{ 111, 111, 111, 111 }, "User 5"},  // RFID #5
+  {{ 111, 111, 111, 111 }, "User 6"},  // RFID #6
+  {{ 111, 111, 111, 111 }, "User 7"},  // RFID #7
+};
+
 
 //============================
 //###### ALARM FUNCTION ######
