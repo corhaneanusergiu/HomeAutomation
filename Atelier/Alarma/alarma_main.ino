@@ -203,9 +203,11 @@ sensor sensors[] =
 #define DISARMED 1
 #define ARMED 2
 #define ALARM 3
+#define FIRE 4
 
 #define alarm_limit 5 //stop after 5 alarms
 
+// DE REFACUT CODUL PENTRU MASTER AND SLAVE CITITE IN PRAGRAMMING STATE !!!!!!
 //------ RFID ------ 
 //Declare RFIDs
 #define TOKEN_NUMBER 0
@@ -243,6 +245,18 @@ char tmp_char;
 #define dht_refresh_rate 30000
 dht DHT;
 unsigned long dht_ts;
+
+// DE MODIFICAT CODUL DOAR PENTRU ARMARE/DEZARMARE !!!!!!
+//------ CAPACITIVE SENSORS VARIABLES ------
+#define irqPin 17 // !!! ALT PIN
+#define touch_timeout 1000
+boolean touchStates[12], touchStates_prev[12]; //to keep track of the previous touch states
+unsigned long touch_ts = 0;
+char ledStatus = 0; // !!! LED MODIFICARE
+byte LSB, MSB;
+uint16_t touched;
+bool led1, led2, led1_prev, led2_prev;
+unsigned long led2_ts;
 
 //============================
 //###### ALARM FUNCTION ######
