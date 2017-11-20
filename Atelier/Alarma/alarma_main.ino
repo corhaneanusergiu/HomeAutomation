@@ -284,6 +284,35 @@ unsigned long siren_start_timeout = 5000; //avoid duplicate alarm start/stop req
 unsigned long alarm_standby_timeout = 300; //time before siren starts again while the alarm signal is alarmed
 int vol_from, vol_to; //set pause for volumetric
 
+// DE VERIFICAT SI RESTRUCTURAT !!!!!
+//------GENERAL VARIABLES-------
+#define reboot_count 99
+#define prev_stat_address 100
+
+int prev_day, prev_hour, alarm_count=0;
+boolean enable_alarm = false, enable_volumetric = true, enable_perimetral = true, alarm_armed = false, alarm = false;
+unsigned long nfc_ts = millis(), lcd_ts = millis(), lcd_message_ts = millis(), lcd_bk_ts = millis(), siren_start_ts = millis(), reset_sensors_ts = millis(), alarm_standby_timeout_ts = millis(), alarm_delay_ts = millis();
+int prev_sec = 0;
+bool eth_enabled = 1;
+
+static int nfc_period = 1000; //nfc read frequency
+
+unsigned long grace_period_ts = millis();
+bool menu_enabled = false;
+int menu_option = 0;
+
+long int alarm_timeout_ts;
+bool alarm_siren_started = false;
+bool alarm_standby = false;
+bool force_alarm = false;
+bool check_sensors_before_activation = false;
+
+char tmp[30];
+int tmp_int;
+unsigned long tmp_ulong;
+unsigned long delay_ts;
+
+
 
 //============================
 //###### ALARM FUNCTION ######
