@@ -183,7 +183,7 @@
 #define sensor_number 12 // number of sensors
 sensor sensors[] = 
 {
-  //fields: pin, state, volumetric, perimetral, alarmed_timestamp, name, enabled
+  //fields: pin, state, pir, reed, alarmed_timestamp, name, enabled
   //set state, alarmed_timestamp to 0 and enabled to false
   //first sensor is the DOOR sensor.
 	{ 49, HIGH, 0, 1, 0, "Door", true },
@@ -220,6 +220,23 @@ static token tokens[] =
   {{ 111, 111, 111, 111 }, "User 7"},  // RFID #7
 };
 
+//------ LCD VARIABLES ------
+#define LCD_I2C_ADDR    0x27  // Define I2C Address where the PCF8574A is
+#define BACKLIGHT_PIN     3
+#define En_pin  2
+#define Rw_pin  1
+#define Rs_pin  0
+#define D4_pin  4
+#define D5_pin  5
+#define D6_pin  6
+#define D7_pin  7
+LiquidCrystal_I2C lcd(LCD_I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
+int lcd_message_timeout = 10000; // 10 seconds
+PGM_P lcd_message;
+char lcd_message_str[30];
+char lcd_welcome_message[20]; 
+int lcd_status;
+char tmp_char;
 
 
 //============================
