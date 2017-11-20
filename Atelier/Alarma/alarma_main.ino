@@ -678,6 +678,330 @@ for (a=0;a<6;a++) params[a]=0;
     //###### ALARM FUNCTION ######
     //============================
 
+// DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!
+wch_reset();
+
+    if (!ETH_W5100) Ethernet.maintain(); //Fix for some UIPEthernet crashes
+
+    wch_disable();
+    if (GSM_ENABLED && gsmstarted && ((unsigned long)(millis() - gsm_ts) > gsm_refresh_rate))
+    {
+    	//Read if there are messages on SIM card and print them.
+    	SerialPrint_P(PSTR("Checking for new SMS"), 1);
+    	checkSMS();
+    	gsm_ts = millis();
+    }
+    wch_enable();
+    wch_reset();
+    
+    if (DHT_ENABLED && (unsigned long)(millis() - dht_ts) > dht_refresh_rate) updateDHT();
+    
+    //check NTP every day    
+    if (day() != prev_day) NtpCheck();
+    prev_day = day();
+    
+    if (hour() != prev_hour && year()==1970) NtpCheck();    
+    
+    //intelligent mode
+    if (enable_intelligent_mode && ((unsigned long)(millis() - override_intelligent_ts) > 3600000) && hour()!=prev_hour && !enable_alarm) checkIntelligent();      
+    prev_hour = hour();
+
+	//manage leds and capacitive sensors
+	if (CS_ENABLED)
+	{
+		//manage leds
+		if (enable_alarm)
+		{
+			if ((unsigned long)(millis() - led2_ts) > 1000) led2 = true;
+			if ((unsigned long)(millis() - led2_ts) > 1500)
+			{
+				led2 = false;
+				led2_ts = millis();
+			}
+		}
+		else led2 = false;
+
+		if (led1_prev != led1 || led2_prev != led2)
+		{
+			set_register(GPIO_CLEAR, 0xFF);       // clear all leds
+			delay(10);
+			ledStatus = 0;
+			if (led2) bitWrite(ledStatus, 0, 1);
+                        if (led1) { bitWrite(ledStatus, 1, 1); bitWrite(ledStatus, 2, 1);}
+			set_register(GPIO_SET, ledStatus);  // set LED
+			delay(10);
+		}
+
+		led1_prev = led1;
+		led2_prev = led2;
+
+		//manage Capacitive Sensors
+		readTouchInputs();
+	}
+
+	//Manage LCD menu
+	if ((unsigned long)(millis() - touch_ts) > touch_timeout && touchStates[0] && !touchStates_prev[0])
+	{
+		touchStates[0] = 0;
+		lcd_backlight_on();
+		sound(5);
+		touch_ts = millis();
+		if (menu_enabled)
+		{
+			menu_option++;
+			if (menu_option > 2) menu_option = 0;
+		}
+		else {
+			menu_option = 0;
+			menu_enabled = true;
+		}
+	}
+
+	if ((unsigned long)(millis() - touch_ts) > touch_timeout && touchStates[1] && !touchStates_prev[1])
+	{
+		touchStates[1] = 0;
+		lcd_backlight_on();
+		touch_ts = millis();
+
+		if (menu_enabled)
+		{
+			menu_enabled = false;
+			switch (menu_option)
+			{
+			case 0://enable volum and peri
+				if (!enable_alarm)
+				{
+					enable_volumetric = true;
+					enable_perimetral = true;
+					output_lcd(PSTR("All sensors OK     "));
+					sound(6);
+				}
+				else
+				{
+					output_lcd(PSTR("Not allowed     "));
+					sound(3);
+				}
+                override_intelligent_ts=millis();//override intelligent mode for 1 hour
+				break;
+			case 1://enable only peri
+				if (!enable_alarm)
+				{
+					enable_volumetric = false;
+					enable_perimetral = true;
+					output_lcd(PSTR("Peri only OK     "));
+					sound(6);
+				}
+				else
+				{
+					output_lcd(PSTR("Not allowed      "));
+					sound(3);
+				}
+                override_intelligent_ts=millis();//override intelligent mode for 1 hour
+				break;
+			default://exit
+				sound(6); break;
+			}
+		}
+		else sound(6);
+	}
+
+
+	//search for rfid/nfc
+	if (NFC_ENABLED)
+	{
+		if ((unsigned long)(millis() - nfc_ts) > nfc_period)
+		{
+			nfc_read = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, &uid[0], &uidLength, 50);
+                        wch_reset();
+			nfc_period = 1000;
+
+			if (nfc_read) {
+
+				SerialPrint_P(PSTR("Found a card!"));
+				SerialPrint_P(PSTR("UID Value: "));
+				for (uint8_t i = 0; i < uidLength; i++) SerialPrint(uid[i]); SerialPrint("-");
+
+				char user[80]="Unknown";
+				int nfc_index = -1;
+				nfc_index = nfc_check(uid);
+
+				if (nfc_index>-1)
+				{
+					SerialPrint_P(PSTR("NFC Accepted"), 1);
+
+					if (!enable_alarm) alarm_start(false);
+					else
+					{
+						alarm_stop(false);
+						sprintf(lcd_welcome_message, "Ciao %s      \0", tokens[nfc_index].uid_name);
+						output_lcd_str(lcd_welcome_message);
+						refresh_lcd();
+                                                sound(2);
+					}
+
+					if (nfc_index != -1) sprintf(user, "%s", tokens[nfc_index].uid_name);
+					
+					nfc_period = 5000; //don't search for 5 seconds
+
+					log(URLEncode(user));
+
+					if (enable_alarm) sprintf(user, "%s has enabled the alarm, peri %s, vol %s", user, (enable_perimetral ? "ON" : "OFF"), (enable_volumetric ? "ON" : "OFF"));
+					else sprintf(user, "%s has disabled the alarm", user);
+					pushNotification(user);
+					
+
+				}
+				else
+				{
+					sendMessage(PSTR("Someone try to enter with unrecognized RFID or NFC"));
+					SerialPrint_P(PSTR("NFC not accepted"), 1);
+					output_lcd(PSTR("NFC not accepted"));
+                                        refresh_lcd();
+                                        sound(3);
+
+					log(URLEncode(user));
+
+					//delay(300);
+				}
+			}
+
+			nfc_ts = millis();
+		}
+	}
+
+
+    checkSensors();
+        
+	alarm = false; //reset alarm
+	if (siren_start_ts != 0 && ((unsigned long)(millis() - siren_start_ts)) > siren_start_timeout) alarm = true; //else, alarm after siren timeout
+
+	if (siren_start_ts != 0 && ((unsigned long)(millis() - siren_start_ts)) > siren_start_timeout) alarm = true; //else, alarm after siren timeout
+
+	if (((unsigned long)(millis() - reset_sensors_ts)) > 3600000) //after 1 hour with no alarm, reset sensors and alarm counter
+	{
+		for (int i = 0; i < sensor_number; i++) sensors[1].alarmed_timestamp = 0;
+		alarm_count = 0; 
+	}
+
+	//start the alarm at the end of grace period
+	if (enable_alarm)
+	{
+		if (!alarm_armed)
+		{
+			if (millis() - grace_period_ts>2000)
+			{
+				tmp_ulong = (unsigned long)(grace_period - (millis() - grace_period_ts));
+				if (tmp_ulong > 1000)
+				{
+					tmp_int = (int)(tmp_ulong / (unsigned long)1000);
+					sprintf(tmp, "Start in %d sec", tmp_int);
+					output_lcd_str(tmp);
+				}
+				else
+				{
+					alarm_armed = true;
+					for (int i = 0; i < sensor_number; i++) sensors[i].alarmed = false;
+					output_lcd(PSTR("Alarm started     "));
+					sound(4);
+				}
+			}
+		}
+	}
+	else alarm_armed = false;
+	
+	//After the siren has started, wait for a certain amount of time before starting again
+	if ((unsigned long)(millis() - alarm_standby_timeout_ts) > alarm_standby_timeout) alarm_standby = false;
+	
+	//manage "force alarm"
+	if (force_alarm) digitalWrite(alarmPin, HIGH);
+	else
+	{
+		//If the system is alarmed, start the siren, send mail...
+		if (alarm_armed && !alarm_standby)
+		{
+			//check if the siren has to be started
+			if (alarm && !alarm_siren_started && alarm_count < alarm_limit)
+			{
+				digitalWrite(alarmPin, HIGH);
+				sound(6);			
+                                log("Alarm");	
+				SerialPrint_P(PSTR("ALARM!!"));
+
+				char *buffer;
+				buffer = (char*)malloc(200);
+				bool found = false;
+				sprintf(buffer, "%s", "ALARM! Sensors alarmed:\n");
+				
+				for (int i = 0; i < sensor_number; i++)
+				{
+					if (sensors[i].alarmed)
+					{
+						if (!found) sprintf(buffer, "%s %s", buffer, sensors[i].name);
+						else sprintf(buffer, "%s, %s", buffer, sensors[i].name);
+						found = true;
+					}
+				}
+				
+				sendMessage(buffer);
+				
+				if (GSM_ENABLED)
+				{
+          wch_disable();
+                                        
+					for (int i = 0; i < phones_num; i++) sms.SendSMS(phones[i], buffer);
+
+					calling_number = 0;
+					call_started = true;
+					gsm_call_ts = millis();
+					call.Call(phones[0]);
+					SerialPrint_P(PSTR("CALLING..."));
+
+	        wch_enable();
+				}
+
+				free(buffer);
+
+				alarm_count++;
+				alarm_siren_started = true;
+				alarm_timeout_ts = millis();
+			}
+
+			//Stop siren after alarm timeout
+			if (alarm_siren_started)
+			{
+				if ((unsigned long)(millis() - alarm_timeout_ts) > alarm_timeout)
+				{
+					digitalWrite(alarmPin, LOW);
+					SerialPrint_P(PSTR("ALARM STOP"));
+					alarm_siren_started = false;
+					alarm_standby_timeout_ts = millis();
+					alarm_standby = true;
+				}
+			}
+		}
+		else digitalWrite(alarmPin, LOW);
+	}
+
+	if (call_started && ((unsigned long)(millis() - gsm_call_ts) > call_hangup_time))
+	{
+		wch_disable();
+    call.HangUp();
+		SerialPrint_P(PSTR("HANGING UP CALL"));
+		if (!enable_alarm) call_started = false;
+		else if (calling_number < phones_num - 1)
+		{
+			SerialPrint_P(PSTR("CALLING NEXT NUMBER"));
+			calling_number++;
+			gsm_call_ts = millis();
+			call.Call(phones[calling_number]);
+		}
+		else call_started = false;
+    wch_enable();
+	}
+
+	if (eth_enabled) process_web(webserver);
+	refresh_lcd();
+}
 
 
     //============================
