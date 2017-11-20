@@ -222,6 +222,15 @@ static token tokens[] =
   {{ 111, 111, 111, 111 }, "User 7"},  // RFID #7
 };
 
+// DE VERIFICAT DOAR PENTRU RFID !!!!!
+//------ NFC VARIABLES ------
+PN532_I2C pn532i2c(Wire);
+PN532 nfc(pn532i2c);
+boolean nfc_read;
+uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
+uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
+char last_UID[30];
+
 //------ LCD VARIABLES ------
 #define LCD_I2C_ADDR    0x27  // Define I2C Address where the PCF8574A is
 #define BACKLIGHT_PIN     3
