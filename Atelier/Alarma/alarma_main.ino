@@ -587,14 +587,14 @@ if (mymillis<millis())
 
 // function that executes whenever data is requested by master
 // this function is registered as an event, see setup()
-void requestEvent() {
+void requestEvent() {    // executata la trimitere Event la ESP8266 dupa intrebare
       retparams[2]=busy;
       Wire.write(retparams,3); 
 }
 
 // function that executes whenever data is requested by master
 // this function is registered as an event, see setup()
-void receiveEvent(int count) {
+void receiveEvent(int count) {    // executata la receptionare Event de la ESP8266
 busy=1;
 int a;
 int tcount;
@@ -608,40 +608,40 @@ for (a=0;a<6;a++) params[a]=0;
    }
   switch (params[0])
     {
-    case SET_OUTPUT:
+    case SET_OUTPUT: // seteaza OUTPUT
           if (ports[params[1]]!=1) { ports[params[1]]=1; pinMode(params[1],OUTPUT); } 
           digitalWrite(params[1],params[2]? HIGH : LOW); 
           break;
-    case READ_INPUT:
+    case READ_INPUT: // citeste INPUT
           if (ports[params[1]]!=2) { ports[params[1]]=2; pinMode(params[1],INPUT); } 
           retparams[0]=0; retparams[1]=digitalRead(params[1]); 
           break;
-    case READ_INPUT_PULLUP:
+    case READ_INPUT_PULLUP: // citeste INPUT cu PULLUP
           if (ports[params[1]]!=3) { ports[params[1]]=3; pinMode(params[1],INPUT_PULLUP); } 
           retparams[0]=0; retparams[1]=digitalRead(params[1]); 
           break;          
-    case SET_PWM:
+    case SET_PWM: // seteaza PWM
           if (ports[params[1]]!=4) { ports[params[1]]=4; pinMode(params[1],OUTPUT); } 
           analogWrite(params[1],params[2]); 
           break;
-    case READ_ANALOG:
+    case READ_ANALOG: // citeste intrarea ANALOG
           if (ports[params[1]]!=2) { ports[params[1]]=2; pinMode(params[1],INPUT); } 
           uint16_t anback; anback=analogRead(params[1]); retparams[0]=anback>>8; retparams[1]=anback&255;
           break;    
-    case SET_ADDRESS:
+    case SET_ADDRESS: // seteaza adresa I2C - initial "9"
           stored.device=params[1]; EEPROM.put(STRUCTBASE,stored);
           // update address - will take effect on next powerup of the device as you 
           // can only call "begin" once
           break;
-    case SEROUT: char *m;
+    case SEROUT: char *m; // SERIAL OUT
                  m=(char *)&params[1];
                  Serial.print(m);
                  break;
-    case SERVO : if (ports[params[1]]!=5) { ports[params[1]]=5; myservos[params[1]].attach(params[1]); }  
+    case SERVO : if (ports[params[1]]!=5) { ports[params[1]]=5; myservos[params[1]].attach(params[1]); }  // executie SERVO MOTOR
                  if (params[2]==255) { myservos[params[1]].detach(); ports[params[1]]=0; break; }
                  myservos[params[1]].write(params[2]);
                  break; 
-    case FADE:
+    case FADE: // FADE pentru LED
           if (ports[params[1]]!=4) { ports[params[1]]=4; pinMode(params[1],OUTPUT);  } 
           fade[params[1]][0]=1; fade[params[1]][2]=params[2];
           break;  
@@ -655,13 +655,13 @@ for (a=0;a<6;a++) params[a]=0;
           noTone(params[1]); ports[params[1]]=0; 
           break;
 
-    case DALLAS1:
+    case DALLAS1: // senzor temperatura 1
           tr1=dallas(params[1]); 
           if (params[1]!=stored.t1) { stored.t1=params[1];  EEPROM.put(STRUCTBASE,stored); } // no delay hence first value crap
           retparams[1]=tr1&255; retparams[0]=tr1>>8; 
           break;
 
-    case DALLAS2:
+    case DALLAS2: // senzor temperatura 2
           tr2=dallas(params[1]); 
           if (params[1]!=stored.t2) { stored.t2=params[1]; EEPROM.put(STRUCTBASE,stored); }   // no delay hence first value crap
           retparams[1]=tr2&255; retparams[0]=tr2>>8;
@@ -1015,7 +1015,7 @@ wch_reset();
 //============================
 
 // DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!!!
-void loadOptions()
+void loadOptions() // incarcare optiuni din memoria EEPROM
 {
 	int i = 0;
 
@@ -1035,13 +1035,13 @@ void loadOptions()
 	ENABLE_PUSH = EEPROM.read(i); i++;
 }
 
-void checkIntelligent()
+void checkIntelligent() // verificare stare inteligent (automat) (ora 05:00-22:00)
 {
 	if (hour()>5 && hour()<22) { enable_volumetric = true; enable_perimetral = true; }
 	else { enable_volumetric = false; enable_perimetral = true; }
 }
 
-byte uptime_d()
+byte uptime_d() // de la pornire - zile
 {
   unsigned long milli = millis();
   unsigned long secs=milli/1000, mins=secs/60;
@@ -1053,7 +1053,7 @@ byte uptime_d()
   return (byte)days;
 }
 
-byte uptime_h()
+byte uptime_h() // de la pornire - ore
 {
 	unsigned long milli = millis();
 	unsigned long secs = milli / 1000, mins = secs / 60;
@@ -1065,7 +1065,7 @@ byte uptime_h()
 	return (byte)hours;
 }
 
-byte uptime_m()
+byte uptime_m() // de la pornire - minute
 {
 	unsigned long milli = millis();
 	unsigned long secs = milli / 1000, mins = secs / 60;
@@ -1077,7 +1077,7 @@ byte uptime_m()
 	return (byte)mins;
 }
 
-byte uptime_s()
+byte uptime_s() // de la pornire - secunde
 {
   unsigned long milli = millis();
   unsigned long secs = milli / 1000, mins = secs / 60;
@@ -1088,7 +1088,6 @@ byte uptime_s()
   hours -= days * 24;
   return (byte)secs;
 }
-
 
 
 
