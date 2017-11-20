@@ -65,10 +65,27 @@
 //
 // COMPONENTE
 //-----------------------------------------------------------------------------------------------------------------------------------------
-// SURSA 240VCA/12VCC
-// BATERIE 12V/7A
-// ARDUINO MEGA 2560 - PRINCIPAL
-// 
+// DENUMIREA                  -  NR IO  -   TENSIUNEA   -  PROTOCOL  -                  IO                   -
+//------------------------------------------------------------------------------------------------------------
+// SURSA                      -         -  240VCA/12VCC -            -                                       -
+// BATERIE                    -         -     12V/7A    -            -                                       -
+// ARDUINO MEGA 2560          -         -       5V      -    I2C     -                                       -
+// ESP8266 2.4GHz             -         -      3.3 V    -    I2C     -                                       -
+// ARDUINO PRO MINI (TENSIUNI)-         -       5V      -    I2C     -                                       -
+// RFM69HW 868MHz             -         -      3.3V     -    SPI     -                                       -
+// REED - NC (2 Doors 3 WIN)  -         -      GND      -            -                                       -
+// PIR - 12V (3 BUC)          -         -       12v     -            -                                       -
+// SIRENA                     -         -    12V/1.3A   -            -                                       -
+// SIRENA - RELEU             -         -       5V      -            -                                       -
+// LCD 20X4                   -         -       5V      -     I2C    -                                       -
+// TASTATURA                  -         -               -            -                                       -
+// BUZZER                     -         -       5V      -            -                                       -
+// LED-uri                    -         -       5V      -            -                                       -
+// RFID                       -         -      3.3V     -     SPI    -                                       -
+// ARDUINO PRO MINI (RFID)    -         -       5V      -     I2C    -                                       -
+// DS18B20+                   -         -               -   1 WIRE   -                                       -
+// VOLTMETRU                  -         -       12V     -            -                                       -
+// VOLTMETRU                  -         -        5V     -            -                                       -
 //
 //
 
