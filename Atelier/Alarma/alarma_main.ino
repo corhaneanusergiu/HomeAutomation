@@ -1008,3 +1008,89 @@ wch_reset();
     //###### ALARM FUNCTION ######
 
 }
+
+//------ FUNCTIONS ------
+
+//###### ALARM FUNCTION ######
+//============================
+
+// DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!!!
+void loadOptions()
+{
+	int i = 0;
+
+	alarm_timeout = ((unsigned long)EEPROM.read(i)) * 1000 * 60; i++;
+	grace_period = ((unsigned long)EEPROM.read(i)) * 1000; i++; //
+	lcd_bk_period = ((unsigned long)EEPROM.read(i)) * 1000; i++;
+	siren_start_timeout = ((unsigned long)EEPROM.read(i)) * 1000; i++;
+	alarm_standby_timeout = ((unsigned long)EEPROM.read(i)) * 1000 * 60; i++;
+	ENABLE_BACKLIGHT_CONTROL = EEPROM.read(i); i++;
+	ENABLE_SEND_MAIL = EEPROM.read(i); i++;
+	ENABLE_DOMOTIC_CONTROL = EEPROM.read(i); i++;
+	vol_from = ((int)EEPROM.read(i)); i++;
+	vol_to = ((int)EEPROM.read(i)); i++;
+	enable_intelligent_mode = EEPROM.read(i); i++;
+	enable_sensor_reactivation = EEPROM.read(i); i++;
+	ENABLE_IPCAM_CONTROL = EEPROM.read(i); i++;
+	ENABLE_PUSH = EEPROM.read(i); i++;
+}
+
+void checkIntelligent()
+{
+	if (hour()>5 && hour()<22) { enable_volumetric = true; enable_perimetral = true; }
+	else { enable_volumetric = false; enable_perimetral = true; }
+}
+
+byte uptime_d()
+{
+  unsigned long milli = millis();
+  unsigned long secs=milli/1000, mins=secs/60;
+  unsigned int hours=mins/60, days=hours/24;
+  milli-=secs*1000;
+  secs-=mins*60;
+  mins-=hours*60;
+  hours-=days*24;
+  return (byte)days;
+}
+
+byte uptime_h()
+{
+	unsigned long milli = millis();
+	unsigned long secs = milli / 1000, mins = secs / 60;
+	unsigned int hours = mins / 60, days = hours / 24;
+	milli -= secs * 1000;
+	secs -= mins * 60;
+	mins -= hours * 60;
+	hours -= days * 24;
+	return (byte)hours;
+}
+
+byte uptime_m()
+{
+	unsigned long milli = millis();
+	unsigned long secs = milli / 1000, mins = secs / 60;
+	unsigned int hours = mins / 60, days = hours / 24;
+	milli -= secs * 1000;
+	secs -= mins * 60;
+	mins -= hours * 60;
+	hours -= days * 24;
+	return (byte)mins;
+}
+
+byte uptime_s()
+{
+  unsigned long milli = millis();
+  unsigned long secs = milli / 1000, mins = secs / 60;
+  unsigned int hours = mins / 60, days = hours / 24;
+  milli -= secs * 1000;
+  secs -= mins * 60;
+  mins -= hours * 60;
+  hours -= days * 24;
+  return (byte)secs;
+}
+
+
+
+
+//============================
+//###### ALARM FUNCTION ######
