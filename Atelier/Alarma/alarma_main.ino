@@ -178,6 +178,26 @@
 #define INCENDIU 3
 #define DIVERS 4
 
+// DE MODIICAT !!!!
+// Declare sensors array
+#define sensor_number 12 // number of sensors
+sensor sensors[] = 
+{
+  //fields: pin, state, volumetric, perimetral, alarmed_timestamp, name, enabled
+  //set state, alarmed_timestamp to 0 and enabled to false
+  //first sensor is the DOOR sensor.
+	{ 49, HIGH, 0, 1, 0, "Door", true },
+	{ 6, HIGH, 1, 0, 0, "Volumetric 1", true },
+//  {4,0,1,1,0,("Volumetric 2"),false},
+	{ 13, HIGH, 0, 1, 0, "Sensor 1", true },
+	{ 47, HIGH, 0, 1, 0, "Sensor 2", true },
+	{ 43, HIGH, 0, 1, 0, "Sensor 3", true },
+	{ 39, HIGH, 0, 1, 0, "sensor 4", true },
+	{ 35, HIGH, 0, 1, 0, "Sensor 5", true },
+	{ 31, HIGH, 0, 1, 0, "Sensor 6", true },
+};
+
+
 //------ ALARM STATE ------
 #define PROGRAMMING 0
 #define DISARMED 1
@@ -186,7 +206,7 @@
 
 //------ RFID ------ 
 //Declare RFIDs
-§#define TOKEN_NUMBER 0
+#define TOKEN_NUMBER 0
 static token tokens[] =
 {
   {{ 111, 111, 111, 111 }, "User 1"},  // RFID #1
@@ -197,6 +217,7 @@ static token tokens[] =
   {{ 111, 111, 111, 111 }, "User 6"},  // RFID #6
   {{ 111, 111, 111, 111 }, "User 7"},  // RFID #7
 };
+
 
 
 //============================
