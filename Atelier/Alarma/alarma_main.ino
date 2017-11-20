@@ -2,6 +2,7 @@
 //
 // v1.0 - 20.11.2017
 //
+//
 //------ INFO -----
 //
 // COMPONENTE
@@ -29,8 +30,6 @@
 // VOLTMETRU                  -         -        5V     -            -                                       -
 //
 //
-// 
-//
 // PROMINI - NANO = PINS
 //-----------------------------------------------------------------------------------------------------------------------------------------
 // ANALOG   -     A0        - A7 (8 PINS)
@@ -42,7 +41,6 @@
 // LED      -     D13
 // AREF     -     1.1V
 //-----------------------------------------------------------------------------------------------------------------------------------------
-//
 //
 //
 // MEGA 2560 = PINS
@@ -59,7 +57,6 @@
 //
 //
 //-----------------------------------------------------------------------------------------------------------------------------------------
-//
 //
 
 //###### ALARM FUNCTION ######
@@ -207,7 +204,7 @@ sensor sensors[] =
 
 #define alarm_limit 5 //stop after 5 alarms
 
-// DE REFACUT CODUL PENTRU MASTER AND SLAVE CITITE IN PRAGRAMMING STATE !!!!!!
+// DE REFACUT CODUL PENTRU MASTER AND SLAVE CITITE IN PROGRAMMING STATE !!!!!!
 //------ RFID ------ 
 //Declare RFIDs
 #define TOKEN_NUMBER 0
@@ -251,7 +248,7 @@ char tmp_char;
 
 // DE REFACUT CODUL PENTRU DS18B20 !!!!!!
 //------ DS18B20 VARIABLES ------
-#define dht_refresh_rate 30000
+#define dht_refresh_rate 30000 // cod momentan pentru DHT22
 dht DHT;
 unsigned long dht_ts;
 
