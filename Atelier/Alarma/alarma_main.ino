@@ -81,7 +81,7 @@
 #define LED_240V 12 // PWM - red
 #define LED_ESP 13 // PWM - transmisiuni cu ESP8266
 #define BUTON_RESET 14 // resetare la valori initiale (anulare inregistrare senzori si tag-uri)
-#define BUTON_ARMARE 15 // varianta push with led
+#define BUTON_ARMARE 15 // varianta push with led sau cu touch
 #define CONTACT_CUTIE 16 // microcontact deschidere cutie alarma si cutie baterie
 //#define 17
 //#define 18 // INT3
@@ -139,7 +139,22 @@
 //
 //
 
-
+#include <LCD.h>
+#include <LiquidCrystal_I2C.h>
+#include <Time.h>
+#include <Timezone.h>
+#include <WSWire.h>
+//#include <PN532_I2C.h>
+//#include <PN532.h>
+#include "pitches.h"
+#include "types.h"
+#include "mpr121.h"
+#include <dht.h>
+#include <SoftwareSerial.h>
+#include "SIM900.h"
+#include "sms.h"
+#include "call.h"
+#include <avr/wdt.h>
 
 //============================
 //###### ALARM FUNCTION ######
