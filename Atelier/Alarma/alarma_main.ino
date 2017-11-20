@@ -64,6 +64,24 @@
 //###### ALARM FUNCTION ######
 //============================
 
+#include <LCD.h>
+#include <LiquidCrystal_I2C.h>
+#include <Time.h>
+#include <Timezone.h>
+#include <WSWire.h>
+//#include <PN532_I2C.h>
+//#include <PN532.h>
+#include "pitches.h"
+#include "types.h"
+#include "mpr121.h"
+#include <dht.h>
+#include <SoftwareSerial.h>
+#include "SIM900.h"
+#include "sms.h"
+#include "call.h"
+#include <avr/wdt.h>
+
+
 //define pins of ARDUINO MEGA 2560
 //--------------------------------
 //#define 0 // RX0
@@ -81,11 +99,11 @@
 #define LED_240V 12 // PWM - red
 #define LED_ESP 13 // PWM - transmisiuni cu ESP8266
 #define BUTON_RESET 14 // resetare la valori initiale (anulare inregistrare senzori si tag-uri)
-#define BUTON_ARMARE 15 // varianta push with led sau cu touch
-#define CONTACT_CUTIE 16 // microcontact deschidere cutie alarma si cutie baterie
-//#define 17
-//#define 18 // INT3
-//#define 19 // INT2
+#define BUTON_ARMARE 15 // varianta push with led
+#define BUTON_ARMARE_CS 16 // varianta buton capacitiv
+#define CONTACT_CUTIE_ALARMA 17 // microcontact deschidere cutie alarma si cutie baterie
+#define CONTACT_CUTIE_BATERIE 18 // INT3
+//#define  19 // INT2
 #define SDA 20 // SDA - INT1
 #define SCL 21 // SCL - INT0
 #define SENZOR_01 22 // reed yala
@@ -139,22 +157,32 @@
 //
 //
 
-#include <LCD.h>
-#include <LiquidCrystal_I2C.h>
-#include <Time.h>
-#include <Timezone.h>
-#include <WSWire.h>
-//#include <PN532_I2C.h>
-//#include <PN532.h>
-#include "pitches.h"
-#include "types.h"
-#include "mpr121.h"
-#include <dht.h>
-#include <SoftwareSerial.h>
-#include "SIM900.h"
-#include "sms.h"
-#include "call.h"
-#include <avr/wdt.h>
+//------ FUNCTION VARIABLES ------
+// Enable or disable system modules
+#define TEMP_ENABLED 1 //Enable temperature measurement
+#define CS_ENABLED 1 //Enable touch buttons controller
+#define LCD_ENABLED 1 //Enable LCD outpu
+#define NFC_ENABLED 1 //Enable NFC detection
+#define GSM_ENABLED 1 //Enable GSM functions
+#define SND_ENABLED 1 //Enable sound
+#define WCH_ENABLED 0 //Enable watchdog
+#define REBOOT_CHK 1 //Security mode. If some component fails, after 5 reboot the system enters a safe mode to avoid the siren ring at each reboot (they may be endless!)
+#define REBOOT_RST 0 //Reset security mode. If the system  is stuck, recompile with this option to 1 to reset it. When fixed, recompile with 0
+
+//------ SENSOR SETTINGS ------
+#define NR_SENZORI 12
+#define REED 1
+#define PIR 2
+#define INCENDIU 3
+#define DIVERS 4
+
+//------ ALARM STATE ------
+#define PROGRAMMING 0
+#define DISARMED 1
+#define ARMED 2
+#define ALARM 3
+
+// 
 
 //============================
 //###### ALARM FUNCTION ######
