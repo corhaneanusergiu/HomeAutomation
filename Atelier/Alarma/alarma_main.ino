@@ -458,6 +458,107 @@ void setup(void) {
   //============================
 
 
+  // DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!!!
+  wch_disable();
+  //Initialize siren
+  pinMode(alarmPin, OUTPUT);
+  digitalWrite(alarmPin, LOW);//disable the alarm siren!
+
+  Serial.begin(9600);
+  
+  //SAFE MODE CHECK
+  if (REBOOT_RST) EEPROM.write(reboot_count, 0);
+  
+  if (REBOOT_CHK)
+  {
+    int reboot=EEPROM.read(reboot_count);
+    if (EEPROM.read(reboot_count) > 5) 
+    {
+      Serial.println("SAFE MODE ENABLED, system rebooted more than 5 times");
+      while(true);
+    }
+    reboot=reboot+1;
+    EEPROM.write(reboot_count, reboot);
+  }  
+
+	SerialPrint_P(PSTR("Garo Anti-Theft Alarm 1.0 BOOTING"), 1);
+
+	Wire.begin();
+
+	SerialPrint_P(PSTR("Loading Options"), 1);
+	loadOptions();
+
+	//Initialize LCD
+	SerialPrint_P(PSTR("Initializing LCD"), 1);
+	if (LCD_ENABLED)
+	{
+        initialize_lcd();
+		lcd_output_string(PSTR("AntiTheft Alarm"));
+	}
+
+	//Initialize sensors
+	SerialPrint_P(PSTR("Initializing Sensors"), 1);
+	for (int i = 0; i < sensor_number; i++) pinMode(sensors[i].pin, INPUT);
+
+	//Initialize CS
+	if (CS_ENABLED)
+	{
+		SerialPrint_P(PSTR("Initializing Capacitive Sensors"), 1);
+		pinMode(irqPin, INPUT);
+		digitalWrite(irqPin, HIGH); //enable pullup resistor
+
+		mpr121_setup();
+	}
+	//Initialize network
+  SerialPrint_P(PSTR("Initialize network"), 1);
+  SerialPrint_P(PSTR("Getting DHCP"), 1);
+  delay(1000);
+  //if (ETH_W5100) W5100.select(53); //Uncomment this if the SS pin is different from 10
+
+	if (Ethernet.begin(mac) == 0)
+	{
+		SerialPrint_P(PSTR("Failed to configure Ethernet using DHCP"));
+    lcd.print("Eth failed");
+    eth_enabled = false;      
+	}
+	else
+	{
+		eth_enabled = true;
+		SerialPrint_P(PSTR("Ethernet initialized"),1);		
+		webserver.begin();	
+		lcd.setCursor(0, 1);
+    lcd.print(IPAddress(Ethernet.localIP()));
+    if (SERIAL_OUTPUT) Serial.println(IPAddress(Ethernet.localIP()));
+	}
+  	
+	//Initialize NFC
+	if (NFC_ENABLED) initialize_nfc();
+
+	//Initialize GSM
+	if (GSM_ENABLED) initialize_gsm();
+
+	//Try to sync to NTP. 10 tentatives as workaround
+	NtpCheck();
+
+	if (enable_intelligent_mode) checkIntelligent();
+		
+	sendMessage(PSTR("Antitheft alarm has just started"));
+	
+	sound(0);
+	SerialPrint_P(PSTR("ANTITHEFT ALARM SUCCESSFULLY BOOTED"), 1);
+
+	log(PSTR("Start"));
+
+	//read prev state in case of accidental reboot
+	if (EEPROM.read(prev_stat_address) == 1)
+	{
+		if (EEPROM.read(prev_stat_address + 1) == 1) enable_perimetral = true;
+		if (EEPROM.read(prev_stat_address + 2) == 1) enable_volumetric = true;
+		alarm_start(true);
+	}
+	wch_enable();
+}
+
 
   //============================
   //###### ALARM FUNCTION ######
