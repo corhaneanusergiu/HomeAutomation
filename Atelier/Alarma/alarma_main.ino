@@ -267,6 +267,24 @@ uint16_t touched;
 bool led1, led2, led1_prev, led2_prev;
 unsigned long led2_ts;
 
+// DE VERIFICAT SI RESTRUCTURAT !!!!!
+//------OPTION VARIABLES-------
+//These are just default settings, they may be configured in the options webpage
+int ENABLE_BACKLIGHT_CONTROL = 1;
+int ENABLE_SEND_MAIL = 0;
+int ENABLE_DOMOTIC_CONTROL = 1;
+int ENABLE_IPCAM_CONTROL = 1;
+int ENABLE_PUSH = 1;
+int enable_intelligent_mode=1, enable_sensor_reactivation=0;
+unsigned long override_intelligent_ts;
+unsigned long alarm_timeout = 1000; //set waiting time before turning off the siren once the sensor alarm is off
+unsigned long grace_period = 10000; //alarm grace period
+unsigned long lcd_bk_period = 8000; //backlight duration
+unsigned long siren_start_timeout = 5000; //avoid duplicate alarm start/stop request from webserver
+unsigned long alarm_standby_timeout = 300; //time before siren starts again while the alarm signal is alarmed
+int vol_from, vol_to; //set pause for volumetric
+
+
 //============================
 //###### ALARM FUNCTION ######
 
