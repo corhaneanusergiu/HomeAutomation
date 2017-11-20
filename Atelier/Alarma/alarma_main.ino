@@ -204,6 +204,8 @@ sensor sensors[] =
 #define ARMED 2
 #define ALARM 3
 
+#define alarm_limit 5 //stop after 5 alarms
+
 //------ RFID ------ 
 //Declare RFIDs
 #define TOKEN_NUMBER 0
