@@ -832,7 +832,7 @@ for (a=0;a<6;a++) params[a]=0;
 	if (force_alarm) digitalWrite(alarmPin, HIGH);
 	else
 	{
-		//If the system is alarmed, start the siren, send mail...
+		//If the system is alarmed, start the siren, send mail...etc
 		if (alarm_armed && !alarm_standby)
 		{
 			//check if the siren has to be started
@@ -898,7 +898,7 @@ for (a=0;a<6;a++) params[a]=0;
 		else digitalWrite(alarmPin, LOW);
 	}
 
-	if (call_started && ((unsigned long)(millis() - gsm_call_ts) > call_hangup_time))
+	if (call_started && ((unsigned long)(millis() - gsm_call_ts) > call_hangup_time)) // gsm
 	{
 		wch_disable();
     call.HangUp();
