@@ -723,7 +723,7 @@ for (a=0;a<6;a++) params[a]=0;
 
 
 	//search for rfid/nfc
-	if (NFC_ENABLED)
+	if (NFC_ENABLED) // de eliminat !!!
 	{
 		if ((unsigned long)(millis() - nfc_ts) > nfc_period)
 		{
