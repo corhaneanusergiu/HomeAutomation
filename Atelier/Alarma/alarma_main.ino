@@ -67,16 +67,10 @@
 #include <Time.h>
 #include <Timezone.h>
 #include <WSWire.h>
-//#include <PN532_I2C.h>
-//#include <PN532.h>
 #include "pitches.h"
 #include "types.h"
-#include "mpr121.h"
 #include <dht.h>
 #include <SoftwareSerial.h>
-#include "SIM900.h"
-#include "sms.h"
-#include "call.h"
 #include <avr/wdt.h>
 
 
@@ -86,8 +80,8 @@
 //#define 1 // TX0
 //#define 2 // PWM - INT4
 //#define 3 // PWM - INT5
-//#define 4 // PWM
-//#define 5 // PWM
+#define SIRENA_EXT 4 // PWM - releu
+#define SIRENA_INT 5 // PWM - releu
 #define BUZZER 6 // PWM
 #define LED_RGB_R 7 // PWM - RGB - (blue - PROGRAMING; green - DISARMED; red - ARMED; red blink - ALARMED)
 #define LED_RGB_G 8 // PWM - RGB - (blue - PROGRAMING; green - DISARMED; red - ARMED; red blink - ALARMED)
@@ -111,13 +105,13 @@
 #define SENZOR_05 26 // reed geam 2
 #define SENZOR_06 27 // reed geam 3
 #define SENZOR_07 28 // reed beci
-#define SENZOR_08 29 // cablu taiat 
-#define SENZOR_09 30 // divers
-#define SENZOR_10 31 // fum
-#define SENZOR_11 32 // flacara
-#define SENZOR_12 33 // CO2, CO
-#define SIRENA_EXT 34 // releu
-#define SIRENA_INT 35 // releu
+#define SENZOR_08 29 // pir sala mare 
+#define SENZOR_09 30 // pir sala mica
+#define SENZOR_10 31 // diverse
+#define SENZOR_11 32 // diverse (cablu taiat)
+#define SENZOR_12 33 // fum
+#define SENZOR_13 34 // flacara
+#define SENZOR_14 35 // CO2, CO, gaze
 #define TASTATURA_01 36
 #define TASTATURA_02 37
 #define TASTATURA_03 38
@@ -161,15 +155,15 @@
 #define CS_ENABLED 1 //Enable touch buttons controller
 #define LCD_ENABLED 1 //Enable LCD output
 #define FIRE_ENABLED 0 //Enable Fire detection
+#define GAS_ENABLE 0 //Enable Gaze detection
 #define NFC_ENABLED 0 //Enable NFC detection
-#define GSM_ENABLED 0 //Enable GSM functions
 #define SND_ENABLED 1 //Enable sound
 #define WCH_ENABLED 0 //Enable watchdog
 #define REBOOT_CHK 1 //Security mode. If some component fails, after 5 reboot the system enters a safe mode to avoid the siren ring at each reboot (they may be endless!)
 #define REBOOT_RST 0 //Reset security mode. If the system  is stuck, recompile with this option to 1 to reset it. When fixed, recompile with 0
 
 //------ SENSOR SETTINGS ------
-#define NR_SENZORI 12
+#define NR_SENZORI 14
 #define REED 1
 #define PIR 2
 #define INCENDIU 3
@@ -177,21 +171,26 @@
 
 // DE MODIICAT !!!!
 // Declare sensors array
-#define sensor_number 12 // number of sensors
+#define sensor_number 14 // number of sensors
 sensor sensors[] = 
 {
   //fields: pin, state, pir, reed, alarmed_timestamp, name, enabled
   //set state, alarmed_timestamp to 0 and enabled to false
   //first sensor is the DOOR sensor.
-	{ 49, HIGH, 0, 1, 0, "Door", true },
-	{ 6, HIGH, 1, 0, 0, "Volumetric 1", true },
-//  {4,0,1,1,0,("Volumetric 2"),false},
-	{ 13, HIGH, 0, 1, 0, "Sensor 1", true },
-	{ 47, HIGH, 0, 1, 0, "Sensor 2", true },
-	{ 43, HIGH, 0, 1, 0, "Sensor 3", true },
-	{ 39, HIGH, 0, 1, 0, "sensor 4", true },
-	{ 35, HIGH, 0, 1, 0, "Sensor 5", true },
-	{ 31, HIGH, 0, 1, 0, "Sensor 6", true },
+	{ 22, HIGH, 0, 1, 0, "SENZOR_01", true },
+	{ 23, HIGH, 0, 1, 0, "SENZOR_02", true },
+  	{ 24, HIGH, 0, 1, 0, "SENZOR_03", true },
+	{ 25, HIGH, 0, 1, 0, "SENZOR_04", true },
+	{ 26, HIGH, 0, 1, 0, "SENZOR_05", true },
+	{ 27, HIGH, 0, 1, 0, "SENZOR_06", true },
+	{ 28, HIGH, 0, 1, 0, "SENZOR_07", true },
+	{ 29, HIGH, 0, 1, 0, "SENZOR_08", true },
+	{ 30, HIGH, 0, 1, 0, "SENZOR_09", true },
+	{ 31, HIGH, 0, 1, 0, "SENZOR_10", true },
+	{ 32, HIGH, 0, 1, 0, "SENZOR_11", true },
+	{ 33, HIGH, 0, 1, 0, "SENZOR_12", true },
+	{ 34, HIGH, 0, 1, 0, "SENZOR_13", true },
+	{ 35, HIGH, 0, 1, 0, "SENZOR_14", true },
 };
 
 
@@ -201,13 +200,14 @@ sensor sensors[] =
 #define ARMED 2
 #define ALARM 3
 #define FIRE 4
+#define GAS 5
 
 #define alarm_limit 5 //stop after 5 alarms
 
 // DE REFACUT CODUL PENTRU MASTER AND SLAVE CITITE IN PROGRAMMING STATE !!!!!!
 //------ RFID ------ 
 //Declare RFIDs
-#define TOKEN_NUMBER 0
+#define TOKEN_NUMBER 7
 static token tokens[] =
 {
   {{ 111, 111, 111, 111 }, "User 1"},  // RFID #1
@@ -218,15 +218,6 @@ static token tokens[] =
   {{ 111, 111, 111, 111 }, "User 6"},  // RFID #6
   {{ 111, 111, 111, 111 }, "User 7"},  // RFID #7
 };
-
-// DE VERIFICAT DOAR PENTRU RFID !!!!!
-//------ NFC VARIABLES ------
-PN532_I2C pn532i2c(Wire);
-PN532 nfc(pn532i2c);
-boolean nfc_read;
-uint8_t uid[] = { 0, 0, 0, 0, 0, 0, 0 };  // Buffer to store the returned UID
-uint8_t uidLength;                        // Length of the UID (4 or 7 bytes depending on ISO14443A card type)
-char last_UID[30];
 
 //------ LCD VARIABLES ------
 #define LCD_I2C_ADDR    0x27  // Define I2C Address where the PCF8574A is
@@ -239,44 +230,24 @@ char last_UID[30];
 #define D6_pin  6
 #define D7_pin  7
 LiquidCrystal_I2C lcd(LCD_I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
-int lcd_message_timeout = 10000; // 10 seconds
+int lcd_message_timeout = 8000; // 10 seconds
 PGM_P lcd_message;
 char lcd_message_str[30];
 char lcd_welcome_message[20]; 
 int lcd_status;
 char tmp_char;
 
-// DE REFACUT CODUL PENTRU DS18B20 !!!!!!
-//------ DS18B20 VARIABLES ------
-#define dht_refresh_rate 30000 // cod momentan pentru DHT22
-dht DHT;
-unsigned long dht_ts;
-
-// DE MODIFICAT CODUL DOAR PENTRU ARMARE/DEZARMARE !!!!!!
-//------ CAPACITIVE SENSORS VARIABLES ------
-#define irqPin 17 // !!! ALT PIN
-#define touch_timeout 1000
-boolean touchStates[12], touchStates_prev[12]; //to keep track of the previous touch states
-unsigned long touch_ts = 0;
-char ledStatus = 0; // !!! LED MODIFICARE
-byte LSB, MSB;
-uint16_t touched;
-bool led1, led2, led1_prev, led2_prev;
-unsigned long led2_ts;
-
 // DE VERIFICAT SI RESTRUCTURAT !!!!!
 //------OPTION VARIABLES-------
 //These are just default settings, they may be configured in the options webpage
 int ENABLE_BACKLIGHT_CONTROL = 1;
 int ENABLE_SEND_MAIL = 0;
-int ENABLE_DOMOTIC_CONTROL = 1;
-int ENABLE_IPCAM_CONTROL = 1;
-int ENABLE_PUSH = 1;
-int enable_intelligent_mode=1, enable_sensor_reactivation=0;
+int enable_intelligent_mode = 1;
+int enable_sensor_reactivation = 0;
 unsigned long override_intelligent_ts;
 unsigned long alarm_timeout = 1000; //set waiting time before turning off the siren once the sensor alarm is off
 unsigned long grace_period = 10000; //alarm grace period
-unsigned long lcd_bk_period = 8000; //backlight duration
+unsigned long lcd_bk_period = 10000; //backlight duration
 unsigned long siren_start_timeout = 5000; //avoid duplicate alarm start/stop request from webserver
 unsigned long alarm_standby_timeout = 300; //time before siren starts again while the alarm signal is alarmed
 int vol_from, vol_to; //set pause for volumetric
@@ -286,29 +257,41 @@ int vol_from, vol_to; //set pause for volumetric
 #define reboot_count 99
 #define prev_stat_address 100
 
-int prev_day, prev_hour, alarm_count=0;
-boolean enable_alarm = false, enable_volumetric = true, enable_perimetral = true, alarm_armed = false, alarm = false;
-unsigned long nfc_ts = millis(), lcd_ts = millis(), lcd_message_ts = millis(), lcd_bk_ts = millis(), siren_start_ts = millis(), reset_sensors_ts = millis(), alarm_standby_timeout_ts = millis(), alarm_delay_ts = millis();
-int prev_sec = 0;
-bool eth_enabled = 1;
+int prev_day;
+int prev_hour;
 
-static int nfc_period = 1000; //nfc read frequency
-
-unsigned long grace_period_ts = millis();
-bool menu_enabled = false;
-int menu_option = 0;
-
-long int alarm_timeout_ts;
+int alarm_count = 0;
+bool enable_alarm = false;
+bool enable_volumetric = true;
+bool enable_perimetral = true;
+bool alarm_armed = false;
+bool alarm = false;
 bool alarm_siren_started = false;
 bool alarm_standby = false;
 bool force_alarm = false;
 bool check_sensors_before_activation = false;
+long int alarm_timeout_ts;
+unsigned long siren_start_ts = millis();
+unsigned long reset_sensors_ts = millis();
+unsigned long alarm_standby_timeout_ts = millis();
+unsigned long alarm_delay_ts = millis();
+unsigned long grace_period_ts = millis();
+int prev_sec = 0;
+bool eth_enabled = 1;
+
+unsigned long nfc_ts = millis();
+static int nfc_period = 1000; //nfc read frequency - 1 second
+
+unsigned long lcd_ts = millis();
+unsigned long lcd_message_ts = millis();
+unsigned long lcd_bk_ts = millis();
+bool menu_enabled = false;
+int menu_option = 0;
 
 char tmp[30];
 int tmp_int;
 unsigned long tmp_ulong;
 unsigned long delay_ts;
-
 
 
 //============================
@@ -456,95 +439,52 @@ void setup(void) {
 
 
   // DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!!!
-  wch_disable();
-  //Initialize siren
-  pinMode(alarmPin, OUTPUT);
-  digitalWrite(alarmPin, LOW);//disable the alarm siren!
+  wch_disable(); // watchdog timer
+  
+  //Initialize alarm siren
+  pinMode(alarmPin, OUTPUT); 
+  digitalWrite(alarmPin, LOW); //disable the alarm siren!
 
-  Serial.begin(9600);
+  Serial.begin(115200);
   
   //SAFE MODE CHECK
   if (REBOOT_RST) EEPROM.write(reboot_count, 0);
   
   if (REBOOT_CHK)
   {
-    int reboot=EEPROM.read(reboot_count);
+    int reboot = EEPROM.read(reboot_count);
     if (EEPROM.read(reboot_count) > 5) 
     {
-      Serial.println("SAFE MODE ENABLED, system rebooted more than 5 times");
+      Serial.println("SAFE MODE ENABLED, system rebooted more than 5 times"); // Activat Safe Mode, sistemul a repornit de 5 ori
       while(true);
     }
-    reboot=reboot+1;
+    reboot = reboot + 1;
     EEPROM.write(reboot_count, reboot);
   }  
 
-	SerialPrint_P(PSTR("Garo Anti-Theft Alarm 1.0 BOOTING"), 1);
+	SerialPrint_P(PSTR("Alarma Atelier 1.0 BOOTING"), 1); // Alarma Atelier 1.0 Initializare
 
 	Wire.begin();
 
-	SerialPrint_P(PSTR("Loading Options"), 1);
+	SerialPrint_P(PSTR("Loading Options"), 1); // Incarcare Optiuni
 	loadOptions();
 
 	//Initialize LCD
-	SerialPrint_P(PSTR("Initializing LCD"), 1);
+	SerialPrint_P(PSTR("Initializing LCD"), 1); // Initializare LCD
 	if (LCD_ENABLED)
 	{
         initialize_lcd();
-		lcd_output_string(PSTR("AntiTheft Alarm"));
+		lcd_output_string(PSTR("AntiTheft Alarm")); // Alarma Atelier
 	}
 
 	//Initialize sensors
-	SerialPrint_P(PSTR("Initializing Sensors"), 1);
+	SerialPrint_P(PSTR("Initializing Sensors"), 1); // Initializare Senzori
 	for (int i = 0; i < sensor_number; i++) pinMode(sensors[i].pin, INPUT);
 
-	//Initialize CS
-	if (CS_ENABLED)
-	{
-		SerialPrint_P(PSTR("Initializing Capacitive Sensors"), 1);
-		pinMode(irqPin, INPUT);
-		digitalWrite(irqPin, HIGH); //enable pullup resistor
-
-		mpr121_setup();
-	}
-	//Initialize network
-  SerialPrint_P(PSTR("Initialize network"), 1);
-  SerialPrint_P(PSTR("Getting DHCP"), 1);
-  delay(1000);
-  //if (ETH_W5100) W5100.select(53); //Uncomment this if the SS pin is different from 10
-
-	if (Ethernet.begin(mac) == 0)
-	{
-		SerialPrint_P(PSTR("Failed to configure Ethernet using DHCP"));
-    lcd.print("Eth failed");
-    eth_enabled = false;      
-	}
-	else
-	{
-		eth_enabled = true;
-		SerialPrint_P(PSTR("Ethernet initialized"),1);		
-		webserver.begin();	
-		lcd.setCursor(0, 1);
-    lcd.print(IPAddress(Ethernet.localIP()));
-    if (SERIAL_OUTPUT) Serial.println(IPAddress(Ethernet.localIP()));
-	}
-  	
-	//Initialize NFC
-	if (NFC_ENABLED) initialize_nfc();
-
-	//Initialize GSM
-	if (GSM_ENABLED) initialize_gsm();
-
-	//Try to sync to NTP. 10 tentatives as workaround
-	NtpCheck();
-
-	if (enable_intelligent_mode) checkIntelligent();
-		
-	sendMessage(PSTR("Antitheft alarm has just started"));
-	
 	sound(0);
-	SerialPrint_P(PSTR("ANTITHEFT ALARM SUCCESSFULLY BOOTED"), 1);
+	SerialPrint_P(PSTR("ANTITHEFT ALARM SUCCESSFULLY BOOTED"), 1); // Alarma pornita
 
-	log(PSTR("Start"));
+	log(PSTR("Start")); // Start
 
 	//read prev state in case of accidental reboot
 	if (EEPROM.read(prev_stat_address) == 1)
@@ -675,30 +615,9 @@ for (a=0;a<6;a++) params[a]=0;
     //###### ALARM FUNCTION ######
     //============================
 
-// DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!
-wch_reset();
-
-    if (!ETH_W5100) Ethernet.maintain(); //Fix for some UIPEthernet crashes
-
-    wch_disable();
-    if (GSM_ENABLED && gsmstarted && ((unsigned long)(millis() - gsm_ts) > gsm_refresh_rate))
-    {
-    	//Read if there are messages on SIM card and print them.
-    	SerialPrint_P(PSTR("Checking for new SMS"), 1);
-    	checkSMS();
-    	gsm_ts = millis();
-    }
-    wch_enable();
+    // DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!
     wch_reset();
-    
-    if (DHT_ENABLED && (unsigned long)(millis() - dht_ts) > dht_refresh_rate) updateDHT();
-    
-    //check NTP every day    
-    if (day() != prev_day) NtpCheck();
-    prev_day = day();
-    
-    if (hour() != prev_hour && year()==1970) NtpCheck();    
-    
+
     //intelligent mode
     if (enable_intelligent_mode && ((unsigned long)(millis() - override_intelligent_ts) > 3600000) && hour()!=prev_hour && !enable_alarm) checkIntelligent();      
     prev_hour = hour();

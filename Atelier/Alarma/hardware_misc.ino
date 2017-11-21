@@ -223,7 +223,7 @@ void mpr121_setup(void) {
 	set_register(GPIO_CLEAR, 0xFF);    // GPIO Data Clear
 }
 
-boolean checkInterrupt(void) {
+bool checkInterrupt(void) {
 	return digitalRead(irqPin);
 }
 
