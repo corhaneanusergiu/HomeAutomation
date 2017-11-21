@@ -1,4 +1,4 @@
-void checkSensors()
+void checkSensors() // verificare senzori
 {
 	//check sensors
 	check_sensors_before_activation = false;

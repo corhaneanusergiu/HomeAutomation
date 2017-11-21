@@ -1,6 +1,6 @@
 // Corhaneanu Sergiu
 //
-// v1.0 - 20.11.2017
+// v1.1 - 20.11.2017
 //
 //
 //------ INFO -----
@@ -1004,7 +1004,6 @@ byte uptime_s() // de la pornire - secunde
   hours -= days * 24;
   return (byte)secs;
 }
-
 
 
 //============================
