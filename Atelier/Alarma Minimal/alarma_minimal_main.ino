@@ -149,7 +149,7 @@
 // Enable or disable system modules
 #define TEMP_ENABLED 0 //Enable temperature measurement
 #define CS_ENABLED 0 //Enable touch buttons controller
-#define LCD_ENABLED 0 //Enable LCD output
+#define LCD_ENABLED 1 //Enable LCD output
 #define FIRE_ENABLED 0 //Enable Fire detection
 #define GAS_ENABLE 0 //Enable Gaze detection
 #define NFC_ENABLED 0 //Enable NFC detection
@@ -219,9 +219,7 @@ senzor senzori[] {
 //Acestea sunt doar setarile initiale, pot fi reconfigurate in program
 int ENABLE_BACKLIGHT_CONTROL = 1;
 
-int enable_intelligent_mode = 1;
 int enable_sensor_reactivation = 0;
-unsigned long override_intelligent_ts;
 unsigned long alarm_timeout = 1000; //set waiting time before turning off the siren once the sensor alarm is off
 unsigned long grace_period = 10000; //alarm grace period
 unsigned long lcd_bk_period = 10000; //backlight duration
@@ -263,3 +261,95 @@ char tmp[30];
 int tmp_int;
 unsigned long tmp_ulong;
 unsigned long delay_ts;
+
+
+//============================
+//###### ALARM FUNCTION ######
+
+
+
+//###### MEGA PERIPHERIAL ######
+//==============================
+#include <EEPROM.h>
+#include <Wire.h>
+#include <Servo.h> /// note that if you use ANY servo, you lose PWM on pins 9 and 10.
+#include <avr/pgmspace.h>
+#include <OneWire.h>
+#define MAXPORTS 21
+
+#define SET_OUTPUT  1
+#define READ_INPUT  2
+#define READ_INPUT_PULLUP 3
+#define SET_PWM     4
+#define READ_ANALOG 5
+#define SET_ADDRESS 6
+#define PORTSET 7
+#define PORTOUT 8
+#define PORTIN 9
+#define SEROUT 10
+#define SERVO 11   /// value 255 disconnects.... - normally use 0-180
+#define FADE 12
+#define TONE 13
+#define NOTONE 14
+#define DALLAS1 15
+#define DALLAS2 16
+
+#define STRUCTBASE 0
+
+byte busy=0;
+struct STORAGE{
+byte chsm;
+byte device;
+byte t1;
+byte t2;
+};
+
+int tr1=255;
+int tr2=255;
+
+STORAGE stored;
+
+byte ports[MAXPORTS];
+byte params[128];
+byte retparams[3];
+byte paramp;
+
+long mymillis;
+
+
+const PROGMEM  uint8_t ledTable[256] = // Nano is so pathetically short of RAM I have to do this!
+{
+  0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4,
+  4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 12, 12, 12, 13, 13, 14, 14, 15, 15, 15, 16, 16, 17, 17, 18,
+  18, 19, 19, 20, 20, 21, 22, 22, 23, 23, 24, 25, 25, 26, 26, 27, 28, 28, 29, 30, 30, 31, 32, 33, 33, 34, 35, 36, 36, 37, 38, 39, 40, 40, 41,
+  42, 43, 44, 45, 46, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 75, 76, 77,
+  78, 80, 81, 82, 83, 85, 86, 87, 89, 90, 91, 93, 94, 95, 97, 98, 99, 101, 102, 104, 105, 107, 108, 110, 111, 113, 114, 116, 117, 119, 121,
+  122, 124, 125, 127, 129, 130, 132, 134, 135, 137, 139, 141, 142, 144, 146, 148, 150, 151, 153, 155, 157, 159, 161, 163, 165, 166, 168, 170,
+  172, 174, 176, 178, 180, 182, 184, 186, 189, 191, 193, 195, 197, 199, 201, 204, 206, 208, 210, 212, 215, 217, 219, 221, 224, 226, 228, 231,
+  233, 235, 238, 240, 243, 245, 248, 250, 253, 255
+};
+
+byte fade[12][3];
+Servo myservos[14]; // just for ease - so use any pin from 3 to 13... bit of waste but so what.
+
+// Here's the Dallas code - end user need to spot negative values...see https://datasheets.maximintegrated.com/en/ds/DS18B20.pdf
+int16_t dallas (int x)
+{
+  OneWire ds(x);
+  byte i;
+  byte data[2];
+  int16_t result;
+      ds.reset();
+      ds.write(0xCC);
+      ds.write(0xBE);
+      for (i=0;i<2; i++) data[i]=ds.read();
+      result=(data[1]<<8)|data[0];
+ 
+      ds.reset();
+      ds.write(0xCC);
+      ds.write(0x44,1);
+      return result;
+}
+//==============================
+//###### MEGA PERIPHERIAL ######
+
