@@ -146,3 +146,14 @@
 //#define 69 // A14
 //
 //
+
+//###### ALARM FUNCTION ######
+//============================
+
+#include <Time.h>
+#include <WSWire.h>
+#include "pitches.h"
+#include "types.h"
+#include <SoftwareSerial.h>
+#include <avr/wdt.h>
+
