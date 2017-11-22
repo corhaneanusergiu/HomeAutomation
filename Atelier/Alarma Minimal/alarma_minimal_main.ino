@@ -63,11 +63,9 @@
 //============================
 
 #include <Time.h>
-#include <Timezone.h>
 #include <WSWire.h>
 #include "pitches.h"
 #include "types.h"
-#include <dht.h>
 #include <SoftwareSerial.h>
 #include <avr/wdt.h>
 
@@ -147,13 +145,16 @@
 //
 //
 
-//###### ALARM FUNCTION ######
-//============================
-
-#include <Time.h>
-#include <WSWire.h>
-#include "pitches.h"
-#include "types.h"
-#include <SoftwareSerial.h>
-#include <avr/wdt.h>
+//------ FUNCTION VARIABLES ------
+// Enable or disable system modules
+#define TEMP_ENABLED 0 //Enable temperature measurement
+#define CS_ENABLED 0 //Enable touch buttons controller
+#define LCD_ENABLED 0 //Enable LCD output
+#define FIRE_ENABLED 0 //Enable Fire detection
+#define GAS_ENABLE 0 //Enable Gaze detection
+#define NFC_ENABLED 0 //Enable NFC detection
+#define SND_ENABLED 1 //Enable sound
+#define WCH_ENABLED 0 //Enable watchdog
+#define REBOOT_CHK 1 //Security mode. If some component fails, after 5 reboot the system enters a safe mode to avoid the siren ring at each reboot (they may be endless!)
+#define REBOOT_RST 0 //Reset security mode. If the system  is stuck, recompile with this option to 1 to reset it. When fixed, recompile with 0
 
