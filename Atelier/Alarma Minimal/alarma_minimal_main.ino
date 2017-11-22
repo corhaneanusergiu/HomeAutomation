@@ -161,8 +161,29 @@
 
 //------ SENSOR SETTINGS ------
 #define NR_SENZORI 14
+#define SENZOR 0 // senzor neactivat
 #define REED 1
 #define PIR 2
 #define INCENDIU 3
 #define DIVERS 4
+
+senzor senzori[] {
+    // campuri: pin, instalat, stare, tip_senzor, nume, activat, alarmed_timestamp
+    // setare initiala: instalat - false, stare - high, tip_senzor - senzor, activat - false, alarmed_timestamp - 0
+    //
+    {22, false, HIGH, 0, "Senzor 1", false, 0},
+    {23, false, HIGH, 0, "Senzor 2", false, 0},
+    {24, false, HIGH, 0, "Senzor 3", false, 0},
+    {25, false, HIGH, 0, "Senzor 4", false, 0},
+    {26, false, HIGH, 0, "Senzor 5", false, 0},
+    {27, false, HIGH, 0, "Senzor 6", false, 0},
+    {28, false, HIGH, 0, "Senzor 7", false, 0},
+    {29, false, HIGH, 0, "Senzor 8", false, 0},
+    {30, false, HIGH, 0, "Senzor 9", false, 0},
+    {31, false, HIGH, 0, "Senzor 10", false, 0},
+    {32, false, HIGH, 0, "Senzor 11", false, 0},
+    {33, false, HIGH, 0, "Senzor 12", false, 0},
+    {34, false, HIGH, 0, "Senzor 13", false, 0},
+    {35, false, HIGH, 0, "Senzor 14", false, 0},
+};
 
