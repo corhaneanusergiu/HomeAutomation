@@ -411,17 +411,14 @@ void setup(void) {
 
 
     //Initializare sirena alarma
-    pinMode(alarmPin, OUTPUT); 
-    digitalWrite(alarmPin, LOW); //dezactivare sirena alarma!
+    pinMode(SIRENA_EXT, OUTPUT); 
+    digitalWrite(SIRENA_EXT, LOW); //dezactivare sirena alarma!
 
     Serial.begin(115200);
   
     SerialPrint_P(PSTR("Alarma Atelier 1.0 BOOTARE"), 1); // Alarma Atelier 1.0 Initializare
 
 	Wire.begin();
-
-	SerialPrint_P(PSTR("Incarcare Optiuni"), 1); // Incarcare Optiuni
-	loadOptions();
 
 	//Initialize sensors
 	SerialPrint_P(PSTR("Initializare Senzori"), 1); // Initializare Senzori
