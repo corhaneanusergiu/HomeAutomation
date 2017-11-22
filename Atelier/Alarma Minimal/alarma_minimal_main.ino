@@ -400,4 +400,117 @@ void setup(void) {
       //###### MEGA PERIPHERIAL ######
 
 
-      
+
+
+
+      void loop() {
+        
+        //###### MEGA PERIPHERIAL ######
+        //==============================
+        if (mymillis<millis())
+            {
+              mymillis=millis()+10;
+              for (int a=0; a<12; a++)
+                {
+                  if (fade[a][0])
+                    {
+                      if (fade[a][1]<fade[a][2]) { if (++fade[a][1]==fade[a][2]) fade[a][0]=0; analogWrite(a,pgm_read_word_near(ledTable+fade[a][1])); }
+                      if (fade[a][1]>fade[a][2]) { if (--fade[a][1]==fade[a][2]) fade[a][0]=0; analogWrite(a,pgm_read_word_near(ledTable+fade[a][1])); }
+                    }
+                }
+            }  
+        
+        }
+        
+        // function that executes whenever data is requested by master
+        // this function is registered as an event, see setup()
+        void requestEvent() {    // executata la trimitere Event la ESP8266 dupa intrebare
+              retparams[2]=busy;
+              Wire.write(retparams,3); 
+        }
+        
+        // function that executes whenever data is requested by master
+        // this function is registered as an event, see setup()
+        void receiveEvent(int count) {    // executata la receptionare Event de la ESP8266
+        busy=1;
+        int a;
+        int tcount;
+        tcount=count;
+        paramp=0;
+        for (a=0;a<6;a++) params[a]=0; 
+          // Nothing time consuming or visual debugging in here if a RETURN VALUE is expected or the routine to send a byte back could be missed.
+          while ((tcount--)&&(paramp<128))
+           {
+            params[paramp++]=Wire.read(); 
+           }
+          switch (params[0])
+            {
+            case SET_OUTPUT: // seteaza OUTPUT
+                  if (ports[params[1]]!=1) { ports[params[1]]=1; pinMode(params[1],OUTPUT); } 
+                  digitalWrite(params[1],params[2]? HIGH : LOW); 
+                  break;
+            case READ_INPUT: // citeste INPUT
+                  if (ports[params[1]]!=2) { ports[params[1]]=2; pinMode(params[1],INPUT); } 
+                  retparams[0]=0; retparams[1]=digitalRead(params[1]); 
+                  break;
+            case READ_INPUT_PULLUP: // citeste INPUT cu PULLUP
+                  if (ports[params[1]]!=3) { ports[params[1]]=3; pinMode(params[1],INPUT_PULLUP); } 
+                  retparams[0]=0; retparams[1]=digitalRead(params[1]); 
+                  break;          
+            case SET_PWM: // seteaza PWM
+                  if (ports[params[1]]!=4) { ports[params[1]]=4; pinMode(params[1],OUTPUT); } 
+                  analogWrite(params[1],params[2]); 
+                  break;
+            case READ_ANALOG: // citeste intrarea ANALOG
+                  if (ports[params[1]]!=2) { ports[params[1]]=2; pinMode(params[1],INPUT); } 
+                  uint16_t anback; anback=analogRead(params[1]); retparams[0]=anback>>8; retparams[1]=anback&255;
+                  break;    
+            case SET_ADDRESS: // seteaza adresa I2C - initial "9"
+                  stored.device=params[1]; EEPROM.put(STRUCTBASE,stored);
+                  // update address - will take effect on next powerup of the device as you 
+                  // can only call "begin" once
+                  break;
+            case SEROUT: char *m; // SERIAL OUT
+                         m=(char *)&params[1];
+                         Serial.print(m);
+                         break;
+            case SERVO : if (ports[params[1]]!=5) { ports[params[1]]=5; myservos[params[1]].attach(params[1]); }  // executie SERVO MOTOR
+                         if (params[2]==255) { myservos[params[1]].detach(); ports[params[1]]=0; break; }
+                         myservos[params[1]].write(params[2]);
+                         break; 
+            case FADE: // FADE pentru LED
+                  if (ports[params[1]]!=4) { ports[params[1]]=4; pinMode(params[1],OUTPUT);  } 
+                  fade[params[1]][0]=1; fade[params[1]][2]=params[2];
+                  break;  
+        
+            case TONE:  // can't do PWM on pins 2 and 11 while doing this... only one pin at a time...use NOTONE when finished
+                  if ((params[4]|params[5])==0) tone(params[1],(params[2]<<8)+params[3]); else tone(params[1],(params[2]<<8)+params[3],(params[4]<<8)+params[5]); 
+                  ports[params[1]]=0;
+                  break;
+                     
+            case NOTONE:  // can't do PWM on pins 3 and 11 while doing TONE...
+                  noTone(params[1]); ports[params[1]]=0; 
+                  break;
+        
+            case DALLAS1: // senzor temperatura 1
+                  tr1=dallas(params[1]); 
+                  if (params[1]!=stored.t1) { stored.t1=params[1];  EEPROM.put(STRUCTBASE,stored); } // no delay hence first value crap
+                  retparams[1]=tr1&255; retparams[0]=tr1>>8; 
+                  break;
+        
+            case DALLAS2: // senzor temperatura 2
+                  tr2=dallas(params[1]); 
+                  if (params[1]!=stored.t2) { stored.t2=params[1]; EEPROM.put(STRUCTBASE,stored); }   // no delay hence first value crap
+                  retparams[1]=tr2&255; retparams[0]=tr2>>8;
+                  break;  
+                                         
+           default: break;  
+            }
+            busy=0;
+        
+            //==============================
+            //###### MEGA PERIPHERIAL ######
+        
+
+            
+            
