@@ -353,3 +353,51 @@ int16_t dallas (int x)
 //==============================
 //###### MEGA PERIPHERIAL ######
 
+void setup(void) {
+    
+    //###### MEGA PERIPHERIAL ######
+    //==============================
+      // NO serial if using using 0-7 as port expansion (I'm not)
+      // If you want serial - set the speed in the setup routine, if not, comment out
+      int a;
+      uint16_t time = millis();
+      byte eeprom1,eeprom2;
+      analogReference(INTERNAL);  // 1.1v
+      Serial.begin(115200);
+     // get info out of EEPROM
+     EEPROM.get(STRUCTBASE,stored);
+     
+     // first check if EEPROM info is valid?
+     if (stored.chsm!=0x3d)
+       {
+        stored.chsm=0x3d;
+        stored.device=9;
+        stored.t1=255;
+        stored.t2=155;
+        EEPROM.put(STRUCTBASE,stored);
+       }
+    
+      for (a=0;a<MAXPORTS;a++) ports[a]=0; // all inputs
+      Wire.begin(stored.device);           // join i2c bus with address #9 by default
+      Wire.onReceive(receiveEvent);
+      Wire.onRequest(requestEvent); 
+      
+      paramp=0;
+      Serial.begin(115200);
+      mymillis=0;
+      for (a=0;a<12;a++){ fade[a][0]=0; fade[a][2]=0; }
+      for (a=0;a<128;a++) params[a]=0;
+    
+      delay(100);
+      
+      if (stored.t1!=255) tr1=dallas(stored.t1);
+      if (stored.t2!=255) tr2=dallas(stored.t2);  
+    
+      tr1=85*16;
+      tr2=85*16;
+    
+      //==============================
+      //###### MEGA PERIPHERIAL ######
+
+
+      
