@@ -187,3 +187,12 @@ senzor senzori[] {
     {35, false, HIGH, 0, "Senzor 14", false, 0},
 };
 
+
+//------ ALARM STATE ------
+#define PROGRAMMING 0
+#define DISARMED 1
+#define ARMED 2
+#define ALARM 3
+#define FIRE 4
+#define GAS 5
+
