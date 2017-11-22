@@ -153,18 +153,20 @@
 
 //------ FUNCTION VARIABLES ------
 // Enable or disable system modules
+#define LCD_ENABLED 1 //Enable LCD output
 #define TEMP_ENABLED 0 //Enable temperature measurement
 #define CS_ENABLED 0 //Enable touch buttons controller
-#define LCD_ENABLED 1 //Enable LCD output
 #define FIRE_ENABLED 0 //Enable Fire detection
 #define GAS_ENABLE 0 //Enable Gaze detection
-#define NFC_ENABLED 0 //Enable NFC detection
-#define SND_ENABLED 1 //Enable sound
+#define RFID_ENABLED 0 //Enable RFID detection
+#define SND_ENABLED 0 //Enable sound
 #define WCH_ENABLED 0 //Enable watchdog
 #define REBOOT_CHK 1 //Security mode. If some component fails, after 5 reboot the system enters a safe mode to avoid the siren ring at each reboot (they may be endless!)
 #define REBOOT_RST 0 //Reset security mode. If the system  is stuck, recompile with this option to 1 to reset it. When fixed, recompile with 0
 
 //------ LCD VARIABLES ------
+// PENTRU VARIANTA 2 - DE INTRODUS SI LCD
+/*
 #define LCD_I2C_ADDR    0x27  // Define I2C Address where the PCF8574A is
 #define BACKLIGHT_PIN     3
 #define En_pin  2
@@ -181,7 +183,7 @@ char lcd_message_str[30];
 char lcd_welcome_message[20]; 
 int lcd_status;
 char tmp_char;
-
+*/
 
 
 //------ SENSOR SETTINGS ------
@@ -224,7 +226,6 @@ senzor senzori[] {
 //------ VARIABILE OPTIUNI-------
 //Acestea sunt doar setarile initiale, pot fi reconfigurate in program
 int ENABLE_BACKLIGHT_CONTROL = 1;
-
 int enable_sensor_reactivation = 0;
 unsigned long alarm_timeout = 1000; //set waiting time before turning off the siren once the sensor alarm is off
 unsigned long grace_period = 10000; //alarm grace period
@@ -237,9 +238,9 @@ int vol_from, vol_to; //set pause for volumetric
 //------VARIABILE GENERALE-------
 
 // Adrese din EEPROM
-#define reboot_count 99
-#define prev_stat_address 100
-#define stat_address 101
+//#define reboot_count 99
+//#define prev_stat_address 100
+//#define stat_address 101
 
 
 int alarm_count = 0;
@@ -259,12 +260,6 @@ unsigned long alarm_standby_timeout_ts = millis();
 unsigned long alarm_delay_ts = millis();
 unsigned long grace_period_ts = millis();
 int prev_sec = 0;
-
-unsigned long lcd_ts = millis();
-unsigned long lcd_message_ts = millis();
-unsigned long lcd_bk_ts = millis();
-bool menu_enabled = false;
-int menu_option = 0;
 
 char tmp[30];
 int tmp_int;
@@ -415,44 +410,21 @@ void setup(void) {
     //============================
 
 
-    wch_disable(); // watchdog timer
-  
     //Initializare sirena alarma
     pinMode(alarmPin, OUTPUT); 
     digitalWrite(alarmPin, LOW); //dezactivare sirena alarma!
 
     Serial.begin(115200);
   
-    //SAFE MODE CHECK
-    if (REBOOT_RST) EEPROM.write(reboot_count, 0);
-  
-    if (REBOOT_CHK) {
-        int reboot = EEPROM.read(reboot_count);
-        if (EEPROM.read(reboot_count) > 5) {
-
-            Serial.println("SAFE MODE ENABLED, system rebooted more than 5 times"); // Activat Safe Mode, sistemul a repornit de 5 ori
-            while(true);
-        }
-        reboot = reboot + 1;
-        EEPROM.write(reboot_count, reboot);
-    }  
-
-	SerialPrint_P(PSTR("Alarma Atelier 1.0 BOOTING"), 1); // Alarma Atelier 1.0 Initializare
+    SerialPrint_P(PSTR("Alarma Atelier 1.0 BOOTARE"), 1); // Alarma Atelier 1.0 Initializare
 
 	Wire.begin();
 
-	SerialPrint_P(PSTR("Loading Options"), 1); // Incarcare Optiuni
+	SerialPrint_P(PSTR("Incarcare Optiuni"), 1); // Incarcare Optiuni
 	loadOptions();
 
-	//Initialize LCD
-	SerialPrint_P(PSTR("Initializing LCD"), 1); // Initializare LCD
-	if (LCD_ENABLED) {
-        initialize_lcd();
-		lcd_output_string(PSTR("AntiTheft Alarm")); // Alarma Atelier
-	}
-
 	//Initialize sensors
-	SerialPrint_P(PSTR("Initializing Sensors"), 1); // Initializare Senzori
+	SerialPrint_P(PSTR("Initializare Senzori"), 1); // Initializare Senzori
 	for (int i = 0; i < sensor_number; i++) pinMode(sensors[i].pin, INPUT);
 
 	sound(0);
@@ -629,42 +601,6 @@ void receiveEvent(int count) {    // executata la receptionare Event de la ESP82
     // DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!
     wch_reset();
 
-    //intelligent mode
-    if (enable_intelligent_mode && ((unsigned long)(millis() - override_intelligent_ts) > 3600000) && hour()!=prev_hour && !enable_alarm) checkIntelligent();      
-    prev_hour = hour();
-
-	//manage leds and capacitive sensors
-	if (CS_ENABLED)	{
-	    //manage leds
-		if (enable_alarm) {
-			if ((unsigned long)(millis() - led2_ts) > 1000) led2 = true;
-			if ((unsigned long)(millis() - led2_ts) > 1500)	{
-				led2 = false;
-				led2_ts = millis();
-			}
-		}
-		else led2 = false;
-
-		if (led1_prev != led1 || led2_prev != led2)	{
-			set_register(GPIO_CLEAR, 0xFF);       // clear all leds
-			delay(10);
-			ledStatus = 0;
-			if (led2) bitWrite(ledStatus, 0, 1);
-                if (led1) {
-                    bitWrite(ledStatus, 1, 1);
-                    bitWrite(ledStatus, 2, 1);
-                }
-			set_register(GPIO_SET, ledStatus);  // set LED
-			delay(10);
-		}
-
-		led1_prev = led1;
-		led2_prev = led2;
-
-		//manage Capacitive Sensors
-		readTouchInputs();
-	}
-
 	//Manage LCD menu
 	if ((unsigned long)(millis() - touch_ts) > touch_timeout && touchStates[0] && !touchStates_prev[0])	{
 		touchStates[0] = 0;
@@ -672,10 +608,9 @@ void receiveEvent(int count) {    // executata la receptionare Event de la ESP82
 		sound(5);
 		touch_ts = millis();
 		if (menu_enabled) {
-			menu_option++;
+			menu_option ++;
 			if (menu_option > 2) menu_option = 0;
-		}
-		else {
+		} else {
 			menu_option = 0;
 			menu_enabled = true;
 		}
@@ -850,7 +785,6 @@ void receiveEvent(int count) {    // executata la receptionare Event de la ESP82
 //###### ALARM FUNCTION ######
 //============================
 
-// DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!!!
 void loadOptions() {// incarcare optiuni din memoria EEPROM
 
 	int i = 0;
@@ -871,12 +805,12 @@ void loadOptions() {// incarcare optiuni din memoria EEPROM
 byte uptime_d() {// de la pornire - zile
 
   unsigned long milli = millis();
-  unsigned long secs=milli/1000, mins=secs/60;
-  unsigned int hours=mins/60, days=hours/24;
-  milli-=secs*1000;
-  secs-=mins*60;
-  mins-=hours*60;
-  hours-=days*24;
+  unsigned long secs = milli / 1000, mins = secs / 60;
+  unsigned int hours = mins / 60, days = hours / 24;
+  milli -= secs * 1000;
+  secs -= mins * 60;
+  mins -= hours * 60;
+  hours -= days * 24;
   return (byte)days;
 }
 

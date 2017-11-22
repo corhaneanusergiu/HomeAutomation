@@ -618,10 +618,6 @@ for (a=0;a<6;a++) params[a]=0;
     // DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!
     wch_reset();
 
-    //intelligent mode
-    if (enable_intelligent_mode && ((unsigned long)(millis() - override_intelligent_ts) > 3600000) && hour()!=prev_hour && !enable_alarm) checkIntelligent();      
-    prev_hour = hour();
-
 	//manage leds and capacitive sensors
 	if (CS_ENABLED)
 	{
