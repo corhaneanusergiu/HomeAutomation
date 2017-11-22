@@ -202,7 +202,7 @@ sensor sensors[] =
 #define FIRE 4
 #define GAS 5
 
-#define alarm_limit 5 //stop after 5 alarms
+#define alarm_limit 5 //stop after 5 alarms.
 
 // DE REFACUT CODUL PENTRU MASTER AND SLAVE CITITE IN PROGRAMMING STATE !!!!!!
 //------ RFID ------ 
