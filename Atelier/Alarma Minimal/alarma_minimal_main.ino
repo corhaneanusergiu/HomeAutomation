@@ -158,3 +158,11 @@
 #define REBOOT_CHK 1 //Security mode. If some component fails, after 5 reboot the system enters a safe mode to avoid the siren ring at each reboot (they may be endless!)
 #define REBOOT_RST 0 //Reset security mode. If the system  is stuck, recompile with this option to 1 to reset it. When fixed, recompile with 0
 
+
+//------ SENSOR SETTINGS ------
+#define NR_SENZORI 14
+#define REED 1
+#define PIR 2
+#define INCENDIU 3
+#define DIVERS 4
+
