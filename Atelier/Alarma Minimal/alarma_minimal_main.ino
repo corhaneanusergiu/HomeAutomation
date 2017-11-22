@@ -196,3 +196,51 @@ senzor senzori[] {
 #define FIRE 4
 #define GAS 5
 
+//------ VARIABILE OPTIUNI-------
+//Acestea sunt doar setarile initiale, pot fi reconfigurate in program
+int ENABLE_BACKLIGHT_CONTROL = 1;
+
+int enable_intelligent_mode = 1;
+int enable_sensor_reactivation = 0;
+unsigned long override_intelligent_ts;
+unsigned long alarm_timeout = 1000; //set waiting time before turning off the siren once the sensor alarm is off
+unsigned long grace_period = 10000; //alarm grace period
+unsigned long lcd_bk_period = 10000; //backlight duration
+unsigned long siren_start_timeout = 5000; //avoid duplicate alarm start/stop request from webserver
+unsigned long alarm_standby_timeout = 300; //time before siren starts again while the alarm signal is alarmed
+int vol_from, vol_to; //set pause for volumetric
+
+
+//------VARIABILE GENERALE-------
+#define reboot_count 99
+#define prev_stat_address 100
+
+
+int alarm_count = 0;
+bool enable_alarm = false;
+bool enable_volumetric = true;
+bool enable_perimetral = true;
+bool alarm_armed = false;
+bool alarm = false;
+bool alarm_siren_started = false;
+bool alarm_standby = false;
+bool force_alarm = false;
+bool check_sensors_before_activation = false;
+long int alarm_timeout_ts;
+unsigned long siren_start_ts = millis();
+unsigned long reset_sensors_ts = millis();
+unsigned long alarm_standby_timeout_ts = millis();
+unsigned long alarm_delay_ts = millis();
+unsigned long grace_period_ts = millis();
+int prev_sec = 0;
+
+unsigned long lcd_ts = millis();
+unsigned long lcd_message_ts = millis();
+unsigned long lcd_bk_ts = millis();
+bool menu_enabled = false;
+int menu_option = 0;
+
+char tmp[30];
+int tmp_int;
+unsigned long tmp_ulong;
+unsigned long delay_ts;
