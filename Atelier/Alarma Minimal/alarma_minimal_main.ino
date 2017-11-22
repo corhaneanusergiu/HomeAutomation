@@ -69,6 +69,12 @@
 #include <SoftwareSerial.h>
 #include <avr/wdt.h>
 
+#include <EEPROM.h>
+#include <Wire.h>
+#include <Servo.h> /// note that if you use ANY servo, you lose PWM on pins 9 and 10.
+#include <avr/pgmspace.h>
+#include <OneWire.h>
+
 
 //------ PINS ARDUINO MEGA 2560 ------
 
@@ -229,8 +235,11 @@ int vol_from, vol_to; //set pause for volumetric
 
 
 //------VARIABILE GENERALE-------
+
+// Adrese din EEPROM
 #define reboot_count 99
 #define prev_stat_address 100
+#define stat_address 101
 
 
 int alarm_count = 0;
@@ -270,11 +279,7 @@ unsigned long delay_ts;
 
 //###### MEGA PERIPHERIAL ######
 //==============================
-#include <EEPROM.h>
-#include <Wire.h>
-#include <Servo.h> /// note that if you use ANY servo, you lose PWM on pins 9 and 10.
-#include <avr/pgmspace.h>
-#include <OneWire.h>
+
 #define MAXPORTS 21
 
 #define SET_OUTPUT  1
@@ -293,7 +298,6 @@ unsigned long delay_ts;
 #define NOTONE 14
 #define DALLAS1 15
 #define DALLAS2 16
-
 #define STRUCTBASE 0
 
 byte busy=0;
@@ -333,7 +337,7 @@ byte fade[12][3];
 Servo myservos[14]; // just for ease - so use any pin from 3 to 13... bit of waste but so what.
 
 // Here's the Dallas code - end user need to spot negative values...see https://datasheets.maximintegrated.com/en/ds/DS18B20.pdf
-int16_t dallas (int x)
+int16_t dallas (int x) 
 {
   OneWire ds(x);
   byte i;
@@ -353,164 +357,567 @@ int16_t dallas (int x)
 //==============================
 //###### MEGA PERIPHERIAL ######
 
+
+
+
 void setup(void) {
+
     
     //###### MEGA PERIPHERIAL ######
     //==============================
-      // NO serial if using using 0-7 as port expansion (I'm not)
-      // If you want serial - set the speed in the setup routine, if not, comment out
-      int a;
-      uint16_t time = millis();
-      byte eeprom1,eeprom2;
-      analogReference(INTERNAL);  // 1.1v
-      Serial.begin(115200);
-     // get info out of EEPROM
-     EEPROM.get(STRUCTBASE,stored);
-     
-     // first check if EEPROM info is valid?
-     if (stored.chsm!=0x3d)
-       {
+    // NO serial if using using 0-7 as port expansion (I'm not)
+    // If you want serial - set the speed in the setup routine, if not, comment out
+    int a;
+    uint16_t time = millis();
+    byte eeprom1,eeprom2;
+    analogReference(INTERNAL);  // 1.1v
+    Serial.begin(115200);
+    // get info out of EEPROM
+    EEPROM.get(STRUCTBASE,stored);
+ 
+    // first check if EEPROM info is valid?
+    if (stored.chsm!=0x3d) {
+         
         stored.chsm=0x3d;
         stored.device=9;
         stored.t1=255;
         stored.t2=155;
         EEPROM.put(STRUCTBASE,stored);
-       }
-    
-      for (a=0;a<MAXPORTS;a++) ports[a]=0; // all inputs
-      Wire.begin(stored.device);           // join i2c bus with address #9 by default
-      Wire.onReceive(receiveEvent);
-      Wire.onRequest(requestEvent); 
-      
-      paramp=0;
-      Serial.begin(115200);
-      mymillis=0;
-      for (a=0;a<12;a++){ fade[a][0]=0; fade[a][2]=0; }
-      for (a=0;a<128;a++) params[a]=0;
-    
-      delay(100);
-      
-      if (stored.t1!=255) tr1=dallas(stored.t1);
-      if (stored.t2!=255) tr2=dallas(stored.t2);  
-    
-      tr1=85*16;
-      tr2=85*16;
-    
-      //==============================
-      //###### MEGA PERIPHERIAL ######
+    }
+
+    for (a=0;a<MAXPORTS;a++) ports[a]=0; // all inputs
+    Wire.begin(stored.device);           // join i2c bus with address #9 by default
+    Wire.onReceive(receiveEvent);
+    Wire.onRequest(requestEvent); 
+  
+    paramp=0;
+    Serial.begin(115200);
+    mymillis=0;
+    for (a=0;a<12;a++) {
+        fade[a][0]=0;
+        fade[a][2]=0;
+    }
+    for (a=0;a<128;a++) params[a]=0;
+
+    delay(100);
+  
+    if (stored.t1!=255) tr1=dallas(stored.t1);
+    if (stored.t2!=255) tr2=dallas(stored.t2);  
+
+    tr1=85*16;
+    tr2=85*16;
+
+    //==============================
+    //###### MEGA PERIPHERIAL ######
+
+
+    //###### ALARM FUNCTION ######
+    //============================
+
+
+    wch_disable(); // watchdog timer
+  
+    //Initializare sirena alarma
+    pinMode(alarmPin, OUTPUT); 
+    digitalWrite(alarmPin, LOW); //dezactivare sirena alarma!
+
+    Serial.begin(115200);
+  
+    //SAFE MODE CHECK
+    if (REBOOT_RST) EEPROM.write(reboot_count, 0);
+  
+    if (REBOOT_CHK) {
+        int reboot = EEPROM.read(reboot_count);
+        if (EEPROM.read(reboot_count) > 5) {
+
+            Serial.println("SAFE MODE ENABLED, system rebooted more than 5 times"); // Activat Safe Mode, sistemul a repornit de 5 ori
+            while(true);
+        }
+        reboot = reboot + 1;
+        EEPROM.write(reboot_count, reboot);
+    }  
+
+	SerialPrint_P(PSTR("Alarma Atelier 1.0 BOOTING"), 1); // Alarma Atelier 1.0 Initializare
+
+	Wire.begin();
+
+	SerialPrint_P(PSTR("Loading Options"), 1); // Incarcare Optiuni
+	loadOptions();
+
+	//Initialize LCD
+	SerialPrint_P(PSTR("Initializing LCD"), 1); // Initializare LCD
+	if (LCD_ENABLED) {
+        initialize_lcd();
+		lcd_output_string(PSTR("AntiTheft Alarm")); // Alarma Atelier
+	}
+
+	//Initialize sensors
+	SerialPrint_P(PSTR("Initializing Sensors"), 1); // Initializare Senzori
+	for (int i = 0; i < sensor_number; i++) pinMode(sensors[i].pin, INPUT);
+
+	sound(0);
+	SerialPrint_P(PSTR("ANTITHEFT ALARM SUCCESSFULLY BOOTED"), 1); // Alarma pornita
+
+	log(PSTR("Start")); // Start
+
+	//read prev state in case of accidental reboot
+	if (EEPROM.read(prev_stat_address) == 1) {
+		if (EEPROM.read(prev_stat_address + 1) == 1) enable_perimetral = true;
+		if (EEPROM.read(prev_stat_address + 2) == 1) enable_volumetric = true;
+		alarm_start(true);
+	}
+	wch_enable();
+}
+
+
+  //============================
+  //###### ALARM FUNCTION ######
 
 
 
+void loop() {
 
-
-      void loop() {
-        
-        //###### MEGA PERIPHERIAL ######
-        //==============================
-        if (mymillis<millis())
-            {
-              mymillis=millis()+10;
-              for (int a=0; a<12; a++)
-                {
-                  if (fade[a][0])
-                    {
-                      if (fade[a][1]<fade[a][2]) { if (++fade[a][1]==fade[a][2]) fade[a][0]=0; analogWrite(a,pgm_read_word_near(ledTable+fade[a][1])); }
-                      if (fade[a][1]>fade[a][2]) { if (--fade[a][1]==fade[a][2]) fade[a][0]=0; analogWrite(a,pgm_read_word_near(ledTable+fade[a][1])); }
-                    }
+    //###### MEGA PERIPHERIAL ######
+    //==============================
+    if (mymillis<millis()) {
+        mymillis=millis()+10;
+        for (int a=0; a<12; a++) {
+            if (fade[a][0]) {
+                if (fade[a][1]<fade[a][2]) {
+                    if (++fade[a][1]==fade[a][2]) fade[a][0]=0;
+                    analogWrite(a,pgm_read_word_near(ledTable+fade[a][1]));
                 }
-            }  
-        
-        }
-        
-        // function that executes whenever data is requested by master
-        // this function is registered as an event, see setup()
-        void requestEvent() {    // executata la trimitere Event la ESP8266 dupa intrebare
-              retparams[2]=busy;
-              Wire.write(retparams,3); 
-        }
-        
-        // function that executes whenever data is requested by master
-        // this function is registered as an event, see setup()
-        void receiveEvent(int count) {    // executata la receptionare Event de la ESP8266
-        busy=1;
-        int a;
-        int tcount;
-        tcount=count;
-        paramp=0;
-        for (a=0;a<6;a++) params[a]=0; 
-          // Nothing time consuming or visual debugging in here if a RETURN VALUE is expected or the routine to send a byte back could be missed.
-          while ((tcount--)&&(paramp<128))
-           {
-            params[paramp++]=Wire.read(); 
-           }
-          switch (params[0])
-            {
-            case SET_OUTPUT: // seteaza OUTPUT
-                  if (ports[params[1]]!=1) { ports[params[1]]=1; pinMode(params[1],OUTPUT); } 
-                  digitalWrite(params[1],params[2]? HIGH : LOW); 
-                  break;
-            case READ_INPUT: // citeste INPUT
-                  if (ports[params[1]]!=2) { ports[params[1]]=2; pinMode(params[1],INPUT); } 
-                  retparams[0]=0; retparams[1]=digitalRead(params[1]); 
-                  break;
-            case READ_INPUT_PULLUP: // citeste INPUT cu PULLUP
-                  if (ports[params[1]]!=3) { ports[params[1]]=3; pinMode(params[1],INPUT_PULLUP); } 
-                  retparams[0]=0; retparams[1]=digitalRead(params[1]); 
-                  break;          
-            case SET_PWM: // seteaza PWM
-                  if (ports[params[1]]!=4) { ports[params[1]]=4; pinMode(params[1],OUTPUT); } 
-                  analogWrite(params[1],params[2]); 
-                  break;
-            case READ_ANALOG: // citeste intrarea ANALOG
-                  if (ports[params[1]]!=2) { ports[params[1]]=2; pinMode(params[1],INPUT); } 
-                  uint16_t anback; anback=analogRead(params[1]); retparams[0]=anback>>8; retparams[1]=anback&255;
-                  break;    
-            case SET_ADDRESS: // seteaza adresa I2C - initial "9"
-                  stored.device=params[1]; EEPROM.put(STRUCTBASE,stored);
-                  // update address - will take effect on next powerup of the device as you 
-                  // can only call "begin" once
-                  break;
-            case SEROUT: char *m; // SERIAL OUT
-                         m=(char *)&params[1];
-                         Serial.print(m);
-                         break;
-            case SERVO : if (ports[params[1]]!=5) { ports[params[1]]=5; myservos[params[1]].attach(params[1]); }  // executie SERVO MOTOR
-                         if (params[2]==255) { myservos[params[1]].detach(); ports[params[1]]=0; break; }
-                         myservos[params[1]].write(params[2]);
-                         break; 
-            case FADE: // FADE pentru LED
-                  if (ports[params[1]]!=4) { ports[params[1]]=4; pinMode(params[1],OUTPUT);  } 
-                  fade[params[1]][0]=1; fade[params[1]][2]=params[2];
-                  break;  
-        
-            case TONE:  // can't do PWM on pins 2 and 11 while doing this... only one pin at a time...use NOTONE when finished
-                  if ((params[4]|params[5])==0) tone(params[1],(params[2]<<8)+params[3]); else tone(params[1],(params[2]<<8)+params[3],(params[4]<<8)+params[5]); 
-                  ports[params[1]]=0;
-                  break;
-                     
-            case NOTONE:  // can't do PWM on pins 3 and 11 while doing TONE...
-                  noTone(params[1]); ports[params[1]]=0; 
-                  break;
-        
-            case DALLAS1: // senzor temperatura 1
-                  tr1=dallas(params[1]); 
-                  if (params[1]!=stored.t1) { stored.t1=params[1];  EEPROM.put(STRUCTBASE,stored); } // no delay hence first value crap
-                  retparams[1]=tr1&255; retparams[0]=tr1>>8; 
-                  break;
-        
-            case DALLAS2: // senzor temperatura 2
-                  tr2=dallas(params[1]); 
-                  if (params[1]!=stored.t2) { stored.t2=params[1]; EEPROM.put(STRUCTBASE,stored); }   // no delay hence first value crap
-                  retparams[1]=tr2&255; retparams[0]=tr2>>8;
-                  break;  
-                                         
-           default: break;  
+                if (fade[a][1]>fade[a][2]) {
+                    if (--fade[a][1]==fade[a][2]) fade[a][0]=0;
+                    analogWrite(a,pgm_read_word_near(ledTable+fade[a][1]));
+                }
             }
-            busy=0;
-        
-            //==============================
-            //###### MEGA PERIPHERIAL ######
-        
+        }
+    }  
 
-            
-            
+}
+
+// function that executes whenever data is requested by master
+// this function is registered as an event, see setup()
+void requestEvent() {    // executata la trimitere Event la ESP8266 dupa intrebare
+      retparams[2]=busy;
+      Wire.write(retparams,3); 
+}
+
+// function that executes whenever data is requested by master
+// this function is registered as an event, see setup()
+void receiveEvent(int count) {    // executata la receptionare Event de la ESP8266
+    busy=1;
+    int a;
+    int tcount;
+    tcount=count;
+    paramp=0;
+    for (a=0;a<6;a++) params[a]=0; 
+    // Nothing time consuming or visual debugging in here if a RETURN VALUE is expected or the routine to send a byte back could be missed.
+    while ((tcount--)&&(paramp<128)) {
+        params[paramp++]=Wire.read(); 
+    }
+    switch (params[0]) {
+        case SET_OUTPUT: // seteaza OUTPUT
+            if (ports[params[1]]!=1) {
+                ports[params[1]]=1; pinMode(params[1],OUTPUT);
+            } 
+            digitalWrite(params[1],params[2]? HIGH : LOW); 
+            break;
+        case READ_INPUT: // citeste INPUT
+            if (ports[params[1]]!=2) {
+                ports[params[1]]=2;
+                pinMode(params[1],INPUT);
+            } 
+            retparams[0]=0;
+            retparams[1]=digitalRead(params[1]); 
+            break;
+        case READ_INPUT_PULLUP: // citeste INPUT cu PULLUP
+            if (ports[params[1]]!=3) {
+                ports[params[1]]=3;
+                pinMode(params[1],INPUT_PULLUP);
+            } 
+            retparams[0]=0;
+            retparams[1]=digitalRead(params[1]); 
+            break;          
+        case SET_PWM: // seteaza PWM
+            if (ports[params[1]]!=4) {
+                ports[params[1]]=4;
+                pinMode(params[1],OUTPUT);
+            } 
+            analogWrite(params[1],params[2]); 
+            break;
+        case READ_ANALOG: // citeste intrarea ANALOG
+            if (ports[params[1]]!=2) {
+                ports[params[1]]=2;
+                pinMode(params[1],INPUT);
+            } 
+            uint16_t anback;
+            anback=analogRead(params[1]);
+            retparams[0]=anback>>8;
+            retparams[1]=anback&255;
+            break;    
+        case SET_ADDRESS: // seteaza adresa I2C - initial "9"
+            stored.device=params[1];
+            EEPROM.put(STRUCTBASE,stored);
+            // update address - will take effect on next powerup of the device as you 
+            // can only call "begin" once
+            break;
+        case SEROUT: 
+            char *m; // SERIAL OUT
+            m=(char *)&params[1];
+            Serial.print(m);
+            break;
+        case SERVO : 
+            if (ports[params[1]]!=5) {
+                ports[params[1]]=5;
+                myservos[params[1]].attach(params[1]);
+            }  // executie SERVO MOTOR
+            if (params[2]==255) {
+                myservos[params[1]].detach();
+                ports[params[1]]=0; break;
+            }
+            myservos[params[1]].write(params[2]);
+            break; 
+        case FADE: // FADE pentru LED
+            if (ports[params[1]]!=4) {
+                ports[params[1]]=4;
+                pinMode(params[1],OUTPUT);
+            } 
+            fade[params[1]][0]=1;
+            fade[params[1]][2]=params[2];
+            break;  
+
+        case TONE:  // can't do PWM on pins 2 and 11 while doing this... only one pin at a time...use NOTONE when finished
+            if ((params[4]|params[5])==0) tone(params[1],(params[2]<<8)+params[3]);
+            else tone(params[1],(params[2]<<8)+params[3],(params[4]<<8)+params[5]); 
+            ports[params[1]]=0;
+            break; 
+        case NOTONE:  // can't do PWM on pins 3 and 11 while doing TONE...
+            noTone(params[1]); ports[params[1]]=0; 
+            break;
+        case DALLAS1: // senzor temperatura 1
+            tr1=dallas(params[1]); 
+            if (params[1]!=stored.t1) {
+                stored.t1=params[1];
+                EEPROM.put(STRUCTBASE,stored);
+            } // no delay hence first value crap
+            retparams[1]=tr1&255;
+            retparams[0]=tr1>>8; 
+            break;
+        case DALLAS2: // senzor temperatura 2
+            tr2=dallas(params[1]); 
+            if (params[1]!=stored.t2) {
+                stored.t2=params[1];
+                EEPROM.put(STRUCTBASE,stored);
+            }   // no delay hence first value crap
+            retparams[1]=tr2&255;
+            retparams[0]=tr2>>8;
+            break;  
+                                 
+        default: break;  
+    }
+    busy=0;
+
+    //==============================
+    //###### MEGA PERIPHERIAL ######
+
+
+    //###### ALARM FUNCTION ######
+    //============================
+
+    // DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!
+    wch_reset();
+
+    //intelligent mode
+    if (enable_intelligent_mode && ((unsigned long)(millis() - override_intelligent_ts) > 3600000) && hour()!=prev_hour && !enable_alarm) checkIntelligent();      
+    prev_hour = hour();
+
+	//manage leds and capacitive sensors
+	if (CS_ENABLED)	{
+	    //manage leds
+		if (enable_alarm) {
+			if ((unsigned long)(millis() - led2_ts) > 1000) led2 = true;
+			if ((unsigned long)(millis() - led2_ts) > 1500)	{
+				led2 = false;
+				led2_ts = millis();
+			}
+		}
+		else led2 = false;
+
+		if (led1_prev != led1 || led2_prev != led2)	{
+			set_register(GPIO_CLEAR, 0xFF);       // clear all leds
+			delay(10);
+			ledStatus = 0;
+			if (led2) bitWrite(ledStatus, 0, 1);
+                if (led1) {
+                    bitWrite(ledStatus, 1, 1);
+                    bitWrite(ledStatus, 2, 1);
+                }
+			set_register(GPIO_SET, ledStatus);  // set LED
+			delay(10);
+		}
+
+		led1_prev = led1;
+		led2_prev = led2;
+
+		//manage Capacitive Sensors
+		readTouchInputs();
+	}
+
+	//Manage LCD menu
+	if ((unsigned long)(millis() - touch_ts) > touch_timeout && touchStates[0] && !touchStates_prev[0])	{
+		touchStates[0] = 0;
+		lcd_backlight_on();
+		sound(5);
+		touch_ts = millis();
+		if (menu_enabled) {
+			menu_option++;
+			if (menu_option > 2) menu_option = 0;
+		}
+		else {
+			menu_option = 0;
+			menu_enabled = true;
+		}
+	}
+
+	if ((unsigned long)(millis() - touch_ts) > touch_timeout && touchStates[1] && !touchStates_prev[1])	{
+		touchStates[1] = 0;
+		lcd_backlight_on();
+		touch_ts = millis();
+
+		if (menu_enabled) {
+			menu_enabled = false;
+			switch (menu_option) {
+			    case 0://enable volum and peri
+				    if (!enable_alarm) {
+					    enable_volumetric = true;
+					    enable_perimetral = true;
+					    output_lcd(PSTR("All sensors OK     "));
+					    sound(6);
+				    } else {
+					    output_lcd(PSTR("Not allowed     "));
+					    sound(3);
+				    }
+                    override_intelligent_ts=millis(); //override intelligent mode for 1 hour
+				    break;
+			    case 1: //enable only peri
+				    if (!enable_alarm) {
+					    enable_volumetric = false;
+					    enable_perimetral = true;
+					    output_lcd(PSTR("Peri only OK     "));
+					    sound(6);
+				    } else {
+					    output_lcd(PSTR("Not allowed      "));
+					    sound(3);
+				    }
+                    override_intelligent_ts=millis(); //override intelligent mode for 1 hour
+				    break;
+			    default: //exit
+                sound(6); 
+                break;
+			}
+		} else sound(6);
+	}
+
+    checkSensors();
+        
+	alarm = false; //reset alarm
+	if (siren_start_ts != 0 && ((unsigned long)(millis() - siren_start_ts)) > siren_start_timeout) alarm = true; //else, alarm after siren timeout
+
+	if (siren_start_ts != 0 && ((unsigned long)(millis() - siren_start_ts)) > siren_start_timeout) alarm = true; //else, alarm after siren timeout
+
+	if (((unsigned long)(millis() - reset_sensors_ts)) > 3600000) {//after 1 hour with no alarm, reset sensors and alarm counter
+	
+		for (int i = 0; i < sensor_number; i++) sensors[1].alarmed_timestamp = 0;
+		alarm_count = 0; 
+	}
+
+	//start the alarm at the end of grace period
+	if (enable_alarm) {
+		if (!alarm_armed) {
+			if (millis() - grace_period_ts>2000) {
+				tmp_ulong = (unsigned long)(grace_period - (millis() - grace_period_ts));
+				if (tmp_ulong > 1000) {
+					tmp_int = (int)(tmp_ulong / (unsigned long)1000);
+					sprintf(tmp, "Start in %d sec", tmp_int);
+					output_lcd_str(tmp);
+				}
+				else {
+					alarm_armed = true;
+					for (int i = 0; i < sensor_number; i++) sensors[i].alarmed = false;
+					output_lcd(PSTR("Alarm started     "));
+					sound(4);
+				}
+			}
+		}
+	}
+	else alarm_armed = false;
+	
+	//After the siren has started, wait for a certain amount of time before starting again
+	if ((unsigned long)(millis() - alarm_standby_timeout_ts) > alarm_standby_timeout) alarm_standby = false;
+	
+	//manage "force alarm"
+	if (force_alarm) digitalWrite(alarmPin, HIGH);
+	else {
+	    //If the system is alarmed, start the siren, send mail...etc
+		if (alarm_armed && !alarm_standby) {
+			//check if the siren has to be started
+			if (alarm && !alarm_siren_started && alarm_count < alarm_limit)	{
+				digitalWrite(alarmPin, HIGH);
+				sound(6);			
+                log("Alarm");	
+				SerialPrint_P(PSTR("ALARM!!"));
+
+				char *buffer;
+				buffer = (char*)malloc(200);
+				bool found = false;
+				sprintf(buffer, "%s", "ALARM! Sensors alarmed:\n");
+				
+				for (int i = 0; i < sensor_number; i++)	{
+					if (sensors[i].alarmed)	{
+						if (!found) sprintf(buffer, "%s %s", buffer, sensors[i].name);
+						else sprintf(buffer, "%s, %s", buffer, sensors[i].name);
+						found = true;
+					}
+				}
+				
+				sendMessage(buffer);
+				
+				if (GSM_ENABLED) {
+                    wch_disable();
+                                        
+					for (int i = 0; i < phones_num; i++) sms.SendSMS(phones[i], buffer);
+
+					calling_number = 0;
+					call_started = true;
+					gsm_call_ts = millis();
+					call.Call(phones[0]);
+					SerialPrint_P(PSTR("CALLING..."));
+
+	                wch_enable();
+				}
+
+				free(buffer);
+
+				alarm_count++;
+				alarm_siren_started = true;
+				alarm_timeout_ts = millis();
+			}
+
+			//Stop siren after alarm timeout
+			if (alarm_siren_started) {
+				if ((unsigned long)(millis() - alarm_timeout_ts) > alarm_timeout) {
+					digitalWrite(alarmPin, LOW);
+					SerialPrint_P(PSTR("ALARM STOP"));
+					alarm_siren_started = false;
+					alarm_standby_timeout_ts = millis();
+					alarm_standby = true;
+				}
+			}
+		}
+		else digitalWrite(alarmPin, LOW);
+	}
+
+	if (call_started && ((unsigned long)(millis() - gsm_call_ts) > call_hangup_time)) { // gsm
+		wch_disable();
+        call.HangUp();
+		SerialPrint_P(PSTR("HANGING UP CALL"));
+		if (!enable_alarm) call_started = false;
+		else if (calling_number < phones_num - 1) {
+			SerialPrint_P(PSTR("CALLING NEXT NUMBER"));
+			calling_number++;
+			gsm_call_ts = millis();
+			call.Call(phones[calling_number]);
+		}
+		else call_started = false;
+        wch_enable();
+	}
+
+	if (eth_enabled) process_web(webserver);
+	refresh_lcd();
+
+
+
+    //============================
+    //###### ALARM FUNCTION ######
+
+}
+
+
+//------ FUNCTIONS ------
+
+//###### ALARM FUNCTION ######
+//============================
+
+// DE RESTRUCTURAT !!!!!!!!!!!!!!!!!!!!!!!
+void loadOptions() {// incarcare optiuni din memoria EEPROM
+
+	int i = 0;
+
+	alarm_timeout = ((unsigned long)EEPROM.read(i)) * 1000 * 60; i++;
+	grace_period = ((unsigned long)EEPROM.read(i)) * 1000; i++; //
+	lcd_bk_period = ((unsigned long)EEPROM.read(i)) * 1000; i++;
+	siren_start_timeout = ((unsigned long)EEPROM.read(i)) * 1000; i++;
+	alarm_standby_timeout = ((unsigned long)EEPROM.read(i)) * 1000 * 60; i++;
+	ENABLE_BACKLIGHT_CONTROL = EEPROM.read(i); i++;
+	vol_from = ((int)EEPROM.read(i)); i++;
+	vol_to = ((int)EEPROM.read(i)); i++;
+	enable_intelligent_mode = EEPROM.read(i); i++;
+	enable_sensor_reactivation = EEPROM.read(i); i++;
+	ENABLE_PUSH = EEPROM.read(i); i++;
+}
+
+byte uptime_d() {// de la pornire - zile
+
+  unsigned long milli = millis();
+  unsigned long secs=milli/1000, mins=secs/60;
+  unsigned int hours=mins/60, days=hours/24;
+  milli-=secs*1000;
+  secs-=mins*60;
+  mins-=hours*60;
+  hours-=days*24;
+  return (byte)days;
+}
+
+byte uptime_h() { // de la pornire - ore
+
+	unsigned long milli = millis();
+	unsigned long secs = milli / 1000, mins = secs / 60;
+	unsigned int hours = mins / 60, days = hours / 24;
+	milli -= secs * 1000;
+	secs -= mins * 60;
+	mins -= hours * 60;
+	hours -= days * 24;
+	return (byte)hours;
+}
+
+byte uptime_m() {// de la pornire - minute
+
+	unsigned long milli = millis();
+	unsigned long secs = milli / 1000, mins = secs / 60;
+	unsigned int hours = mins / 60, days = hours / 24;
+	milli -= secs * 1000;
+	secs -= mins * 60;
+	mins -= hours * 60;
+	hours -= days * 24;
+	return (byte)mins;
+}
+
+byte uptime_s() {// de la pornire - secunde
+
+  unsigned long milli = millis();
+  unsigned long secs = milli / 1000, mins = secs / 60;
+  unsigned int hours = mins / 60, days = hours / 24;
+  milli -= secs * 1000;
+  secs -= mins * 60;
+  mins -= hours * 60;
+  hours -= days * 24;
+  return (byte)secs;
+}
+
+
+//============================
+//###### ALARM FUNCTION ######
+
+

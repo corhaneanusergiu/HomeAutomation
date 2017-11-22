@@ -1008,3 +1008,5 @@ byte uptime_s() // de la pornire - secunde
 
 //============================
 //###### ALARM FUNCTION ######
+
+
