@@ -152,19 +152,6 @@
 //
 //
 
-//------ FUNCTION VARIABLES ------
-// Enable or disable system modules
-#define LCD_ENABLED 1 //Enable LCD output
-#define TEMP_ENABLED 0 //Enable temperature measurement
-#define CS_ENABLED 0 //Enable touch buttons controller
-#define FIRE_ENABLED 0 //Enable Fire detection
-#define GAS_ENABLE 0 //Enable Gaze detection
-#define RFID_ENABLED 0 //Enable RFID detection
-#define SND_ENABLED 0 //Enable sound
-#define WCH_ENABLED 0 //Enable watchdog
-#define REBOOT_CHK 1 //Security mode. If some component fails, after 5 reboot the system enters a safe mode to avoid the siren ring at each reboot (they may be endless!)
-#define REBOOT_RST 0 //Reset security mode. If the system  is stuck, recompile with this option to 1 to reset it. When fixed, recompile with 0
-
 //------ LCD VARIABLES ------
 // PENTRU VARIANTA 2 - DE INTRODUS SI LCD
 /*
@@ -188,75 +175,54 @@ char tmp_char;
 
 
 //------ SENSOR SETTINGS ------
-#define SENSORS_NR 14
-#define SENSOR_NULL 0 // senzor neactivat
+#define NR_SENZORI 14
+#define SENZOR_NULL 0 // senzor neactivat
 #define REED 1
 #define PIR 2
-#define FIRE 3
+#define FUM 3
 #define DIVERS 4
 
-sensor sensors[] {
-    // campuri: pin, instalat, stare, tip_senzor, nume, activat, alarmed_timestamp
-    // setare initiala: instalat - false, stare - high, tip_senzor - senzor, activat - false, alarmed_timestamp - 0
-    //
-    {22, false, HIGH, 0, "Senzor 1", false, 0},
-    {23, false, HIGH, 0, "Senzor 2", false, 0},
-    {24, false, HIGH, 0, "Senzor 3", false, 0},
-    {25, false, HIGH, 0, "Senzor 4", false, 0},
-    {26, false, HIGH, 0, "Senzor 5", false, 0},
-    {27, false, HIGH, 0, "Senzor 6", false, 0},
-    {28, false, HIGH, 0, "Senzor 7", false, 0},
-    {29, false, HIGH, 0, "Senzor 8", false, 0},
-    {30, false, HIGH, 0, "Senzor 9", false, 0},
-    {31, false, HIGH, 0, "Senzor 10", false, 0},
-    {32, false, HIGH, 0, "Senzor 11", false, 0},
-    {33, false, HIGH, 0, "Senzor 12", false, 0},
-    {34, false, HIGH, 0, "Senzor 13", false, 0},
-    {35, false, HIGH, 0, "Senzor 14", false, 0},
-};
-
-
 //------ ALARM STATE ------
-#define PROGRAMMING 0
-#define DISARMED 1
-#define ARMED 2
-#define ALARM 3
-#define FIRE 4
-#define GAS 5
+#define PROGRAMARE 0
+#define DEZARMAT 1
+#define ARMAT 2
+#define ALARMA 3
+#define INCENDIU 4
+#define GAZ 5
 
 //------ VARIABILE OPTIUNI-------
 //Acestea sunt doar setarile initiale, pot fi reconfigurate in program
-int ENABLE_BACKLIGHT_CONTROL = 1;
-int enable_sensor_reactivation = 0;
-unsigned long alarm_timeout = 1000; //set waiting time before turning off the siren once the sensor alarm is off
-unsigned long grace_period = 10000; //alarm grace period
-unsigned long lcd_bk_period = 10000; //backlight duration
-unsigned long siren_start_timeout = 5000; //avoid duplicate alarm start/stop request from webserver
-unsigned long alarm_standby_timeout = 300; //time before siren starts again while the alarm signal is alarmed
-int vol_from, vol_to; //set pause for volumetric
+int activat_control_lumina_lcd = 1;
+int reactivare_senzor = 0;
+unsigned long pauza_alarma = 1000; //set waiting time before turning off the siren once the sensor alarm is off
+unsigned long perioada_gratie = 10000; //alarm grace period
+unsigned long perioada_iluminat_lcd = 10000; //backlight duration
+unsigned long pauza_start_sirena = 5000; //avoid duplicate alarm start/stop request from webserver
+unsigned long pauza_asteptare_alarma = 300; //time before siren starts again while the alarm signal is alarmed
+int vol_de_la, vol_lao; //set pause for volumetric
 
 
 //------VARIABILE GENERALE-------
 
 // Adrese din EEPROM
-//#define reboot_count 99
-//#define prev_stat_address 100
-//#define stat_address 101
+#define contor_repornire 99
+#define adresa_stare_anterioara 100
+#define adresa_stare 101
 
 
-int alarm_count = 0;
-bool enable_alarm = false;
-bool enable_volumetric = true;
-bool enable_perimetral = true;
-bool alarm_armed = false;
-bool alarm = false;
-bool alarm_siren_started = false;
-bool alarm_standby = false;
-bool force_alarm = false;
-bool check_sensors_before_activation = false;
-long int alarm_timeout_ts;
-unsigned long siren_start_ts = millis();
-unsigned long reset_sensors_ts = millis();
+int contor_alarma = 0;
+bool alarma_activata = false;
+bool supraveghere_volumetrica_activata = true;
+bool supraveghere_perimeru_activat = true;
+bool alarma_armata = false;
+bool alarma = false;
+bool sirena_alarma_pornita = false;
+bool asteptare_alarma = false;
+bool fortare_alarma = false;
+bool verificare_senzori_inainte_de_activare = false;
+long int pauza_alarma_ts;
+unsigned long pornit_sirena_ts = millis();
+unsigned long resetare_senzori_ts = millis();
 unsigned long alarm_standby_timeout_ts = millis();
 unsigned long alarm_delay_ts = millis();
 unsigned long grace_period_ts = millis();
