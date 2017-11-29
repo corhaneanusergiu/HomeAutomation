@@ -205,6 +205,18 @@ senzori senzor[] =
 int nr_reporniri_sistem = 0;
 int nr_max_reporniri_sistem = 5;
 
+int stare_alarma = 0;
+bool alarma_silentioasa = false;
+
+unsigned long led_rgb_r_ts = 0;
+unsigned long led_rgb_g_ts = 0;
+unsigned long led_rgb_b_ts = 0;
+unsigned long led_240v_ts = 0;
+unsigned long led_12v_ts = 0;
+unsigned long led_5v_ts = 0;
+unsigned long led_esp_ts = 0;
+int timp_led_puls_on = 200;
+int timp_led_puls_off = 200;
 
 int activat_control_lumina_lcd = 1;
 unsigned long perioada_iluminat_lcd = 10000; //durata iluminat lcd
@@ -226,6 +238,7 @@ bool alarma_armata = false;
 bool alarma_activata = false;
 bool alarmare = false;
 bool sirena_alarma_pornita = false;
+unsigned long sirena_alarma_ts = 0;
 bool asteptare_alarma = false;
 bool fortare_alarma = false;
 bool verificare_senzori_inainte_de_activare = false;
@@ -455,6 +468,16 @@ void loop()
 
 }
 
+
+//=====================
+//=====================
+//#####################
+//###    FUNCTII    ###
+//#####################
+//=====================
+//=====================
+
+
 //###### MEGA PERIPHERIAL ######
 //==============================
 
@@ -613,3 +636,6 @@ void receiveEvent(int count)
 //============================
 
 
+
+//============================
+//###### ALARM FUNCTION ######
