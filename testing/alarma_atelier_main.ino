@@ -395,21 +395,25 @@ void setup(void) {
     //============================
     
     
-    //Initializare sirena alarma
+    //Initializare sirena externa
+    digitalWrite(SIRENA_EXT, LOW); //dezactivare iesire sirena externa!
     pinMode(SIRENA_EXT, OUTPUT); 
-    digitalWrite(SIRENA_EXT, LOW); //dezactivare iesire sirena alarma!
-    
+
+    //Initializare sirena interna
+    digitalWrite(SIRENA_INT, LOW); //dezactivare iesire sirena interna!
+    pinMode(SIRENA_INT, OUTPUT); 
+
+    // Initializare serial
     Serial.begin(115200);
     
     SerialPrint_P(PSTR("Alarma Atelier 1.0 BOOTARE"), 1); // Alarma Atelier 1.0 Initializare
     
 	Wire.begin();
-    
+
 	//Initializare senzori
 	SerialPrint_P(PSTR("Initializare Senzori"), 1);
 	for (int i = 0; i < NR_SENZORI; i++) pinMode(senzori[i].pin, INPUT);
     
-	sound(0);
 	SerialPrint_P(PSTR("ALARMA PORNITA"), 1);
     
 	log(PSTR("Start"));
@@ -419,7 +423,15 @@ void setup(void) {
     {
         stare_alarma = EEPROM.read(adresa_stare);        
     }
+    else
+    {
+        stare_alarma = PROGRAMARE;
+    }
     
+    // Initializare leduri
+    // Initializare LCD
+    // Initializare 
+
 }
 wch_enable();
 }
