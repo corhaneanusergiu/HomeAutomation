@@ -99,7 +99,8 @@ void ledOprit(int pin)
 void ledPuls(int pin)
 {
 	unsigned long timp = millis();
-	int timp_led_aprins = 
+	int led_on = led_off = 200;
+	
 	digitalWrite(pin, HIGH);
 }
 
