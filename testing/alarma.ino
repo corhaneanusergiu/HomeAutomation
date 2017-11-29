@@ -1,20 +1,35 @@
-void pornire_alarma(bool alarma_silentioasa)
+void activare_alarma(bool alarma_silentioasa)
 {
-    switch (stare_alarma)
-    {
-        case (PROGRAMARE):
-            // LCD
-            // Buzzer
-            // LED RGB - albastru pulsatoriu
+    // Senzori recitire?
+    // Sirena
+    activareSirena();
+    // LED RGB - albastru pulsatoriu
+    // Serial
+    // LCD
+    // Buzzer
+    // Tastatura
 
-            sirena_alarma_pornita = false;
-
-            break;
+    break;
     }
               
 }
 
-void oprire_alarma(bool silent)
+void dezactivare_alarma(bool silent)
 {
 
+}
+
+void activareSirena()
+{
+    int sir = digitalRead(SIRENA_EXT); //verificare stare sirena
+    if (!sirena_alarma_pornita && sir == 0)
+    {
+        digitalWrite(SIRENA_EXT, HIGH);
+        siren_start_ts = millis();
+    }
+}
+
+void dezactivareSirena()
+{
+    if (!sirena_alarma_pornita)
 }

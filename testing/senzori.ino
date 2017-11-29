@@ -12,16 +12,6 @@ struct senzori {
 
 // nr, pin, tip, activ,  stare, name, alarmat, alarmat_ts
 
-for (int i = 0, i > NR_SENZORI - 1, i++)
-{
-    for (int j = 0, j > 5, j++)
-    {
-        adresa = adresa_inceput_senzori + 32 * i + j; 
-        eeprom.write(adresa, senzor[i][j])
-    }
-}
-
-
 void citireStareSenzor(int nr)
 {
     senzor[nr].stare = digitalRead(pin);
@@ -29,6 +19,8 @@ void citireStareSenzor(int nr)
 
     return stare_senzor;
 }
+
+
 
 void conversieSenzorNrInSenzorPin(int nr)
 {
