@@ -175,11 +175,11 @@
 // structura senzori
 senzori senzor[] = 
 {
-  //campuri: nr, pin, adresa, tip, activ, stare, nume, alarmat, alarmat_ts
-  //seteaza stare, alarmat_timestamp la 0 si enabled to false
+    //campuri: nr, pin, adresa, tip, activ, stare, nume, alarmat, alarmat_ts
+    //seteaza stare, alarmat_timestamp la 0 si enabled to false
 	{ 1, 22, 100, 0, false, HIGH, "SENZOR_01", true, 0 },
 	{ 2, 23, 200, 0, false, HIGH, "SENZOR_02", true, 0 },
-  	{ 3, 24, 300, 0, false, HIGH, "SENZOR_03", true, 0 },
+    { 3, 24, 300, 0, false, HIGH, "SENZOR_03", true, 0 },
 	{ 4, 25, 400, 0, false, HIGH, "SENZOR_04", true, 0 },
 	{ 5, 26, 500, 0, false, HIGH, "SENZOR_05", true, 0 },
 	{ 6, 27, 600, 0, false, HIGH, "SENZOR_06", true, 0 },
@@ -269,10 +269,10 @@ bool verificare_senzori_dupa_alarmare = true;
 
 byte busy=0;
 struct STORAGE{
-byte chsm;
-byte device;
-byte t1;
-byte t2;
+    byte chsm;
+    byte device;
+    byte t1;
+    byte t2;
 };
 
 int tr1=255;
@@ -290,14 +290,14 @@ long mymillis;
 
 const PROGMEM  uint8_t ledTable[256] = // Nano is so pathetically short of RAM I have to do this!
 {
-  0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4,
-  4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 12, 12, 12, 13, 13, 14, 14, 15, 15, 15, 16, 16, 17, 17, 18,
-  18, 19, 19, 20, 20, 21, 22, 22, 23, 23, 24, 25, 25, 26, 26, 27, 28, 28, 29, 30, 30, 31, 32, 33, 33, 34, 35, 36, 36, 37, 38, 39, 40, 40, 41,
-  42, 43, 44, 45, 46, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 75, 76, 77,
-  78, 80, 81, 82, 83, 85, 86, 87, 89, 90, 91, 93, 94, 95, 97, 98, 99, 101, 102, 104, 105, 107, 108, 110, 111, 113, 114, 116, 117, 119, 121,
-  122, 124, 125, 127, 129, 130, 132, 134, 135, 137, 139, 141, 142, 144, 146, 148, 150, 151, 153, 155, 157, 159, 161, 163, 165, 166, 168, 170,
-  172, 174, 176, 178, 180, 182, 184, 186, 189, 191, 193, 195, 197, 199, 201, 204, 206, 208, 210, 212, 215, 217, 219, 221, 224, 226, 228, 231,
-  233, 235, 238, 240, 243, 245, 248, 250, 253, 255
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4,
+    4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 12, 12, 12, 13, 13, 14, 14, 15, 15, 15, 16, 16, 17, 17, 18,
+    18, 19, 19, 20, 20, 21, 22, 22, 23, 23, 24, 25, 25, 26, 26, 27, 28, 28, 29, 30, 30, 31, 32, 33, 33, 34, 35, 36, 36, 37, 38, 39, 40, 40, 41,
+    42, 43, 44, 45, 46, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 75, 76, 77,
+    78, 80, 81, 82, 83, 85, 86, 87, 89, 90, 91, 93, 94, 95, 97, 98, 99, 101, 102, 104, 105, 107, 108, 110, 111, 113, 114, 116, 117, 119, 121,
+    122, 124, 125, 127, 129, 130, 132, 134, 135, 137, 139, 141, 142, 144, 146, 148, 150, 151, 153, 155, 157, 159, 161, 163, 165, 166, 168, 170,
+    172, 174, 176, 178, 180, 182, 184, 186, 189, 191, 193, 195, 197, 199, 201, 204, 206, 208, 210, 212, 215, 217, 219, 221, 224, 226, 228, 231,
+    233, 235, 238, 240, 243, 245, 248, 250, 253, 255
 };
 
 byte fade[12][3];
@@ -306,20 +306,20 @@ Servo myservos[14]; // just for ease - so use any pin from 3 to 13... bit of was
 // Here's the Dallas code - end user need to spot negative values...see https://datasheets.maximintegrated.com/en/ds/DS18B20.pdf
 int16_t dallas (int x) 
 {
-  OneWire ds(x);
-  byte i;
-  byte data[2];
-  int16_t result;
-      ds.reset();
-      ds.write(0xCC);
-      ds.write(0xBE);
-      for (i=0;i<2; i++) data[i]=ds.read();
-      result=(data[1]<<8)|data[0];
- 
-      ds.reset();
-      ds.write(0xCC);
-      ds.write(0x44,1);
-      return result;
+    OneWire ds(x);
+    byte i;
+    byte data[2];
+    int16_t result;
+    ds.reset();
+    ds.write(0xCC);
+    ds.write(0xBE);
+    for (i=0;i<2; i++) data[i]=ds.read();
+    result=(data[1]<<8)|data[0];
+    
+    ds.reset();
+    ds.write(0xCC);
+    ds.write(0x44,1);
+    return result;
 }
 //==============================
 //###### MEGA PERIPHERIAL ######
@@ -328,7 +328,7 @@ int16_t dallas (int x)
 
 
 void setup(void) {
-
+    
     
     //###### MEGA PERIPHERIAL ######
     //==============================
@@ -341,22 +341,22 @@ void setup(void) {
     Serial.begin(115200);
     // get info out of EEPROM
     EEPROM.get(STRUCTBASE,stored);
- 
+    
     // first check if EEPROM info is valid?
     if (stored.chsm!=0x3d) {
-         
+        
         stored.chsm=0x3d;
         stored.device=9;
         stored.t1=255;
         stored.t2=155;
         EEPROM.put(STRUCTBASE,stored);
     }
-
+    
     for (a=0;a<MAXPORTS;a++) ports[a]=0; // all inputs
     Wire.begin(stored.device);           // join i2c bus with address #9 by default
     Wire.onReceive(receiveEvent);
     Wire.onRequest(requestEvent); 
-  
+    
     paramp=0;
     Serial.begin(115200);
     mymillis=0;
@@ -365,56 +365,56 @@ void setup(void) {
         fade[a][2]=0;
     }
     for (a=0;a<128;a++) params[a]=0;
-
+    
     delay(100);
-  
+    
     if (stored.t1!=255) tr1=dallas(stored.t1);
     if (stored.t2!=255) tr2=dallas(stored.t2);  
-
+    
     tr1=85*16;
     tr2=85*16;
-
+    
     //==============================
     //###### MEGA PERIPHERIAL ######
-
-
+    
+    
     //###### ALARM FUNCTION ######
     //============================
-
-
+    
+    
     //Initializare sirena alarma
     pinMode(SIRENA_EXT, OUTPUT); 
     digitalWrite(SIRENA_EXT, LOW); //dezactivare iesire sirena alarma!
-
+    
     Serial.begin(115200);
-  
+    
     SerialPrint_P(PSTR("Alarma Atelier 1.0 BOOTARE"), 1); // Alarma Atelier 1.0 Initializare
-
+    
 	Wire.begin();
-
+    
 	//Initializare senzori
 	SerialPrint_P(PSTR("Initializare Senzori"), 1);
 	for (int i = 0; i < NR_SENZORI; i++) pinMode(senzori[i].pin, INPUT);
-
+    
 	sound(0);
 	SerialPrint_P(PSTR("ALARMA PORNITA"), 1);
-
+    
 	log(PSTR("Start"));
-
+    
 	//citeste starea anterioara in caz de repornire accidentala
     int stare_anterioara = EEPROM.read(adresa_stare);
-
+    
     if (stare_anterioara == 2) {
-		)alarma_perimetru_armata = true;
-		if (EEPROM.read(adresa_stare_anterioara + 2) == 1)ala enable_volumetric = true;
-		alarm_start(true);pornire_alarma(true);
-	}
-	wch_enable();
+    )alarma_perimetru_armata = true;
+    if (EEPROM.read(adresa_stare_anterioara + 2) == 1)ala enable_volumetric = true;
+    alarm_start(true);pornire_alarma(true);
+}
+wch_enable();
 }
 
 
-  //============================
-  //###### ALARM FUNCTION ######
+//============================
+//###### ALARM FUNCTION ######
 
 
 void loop()
@@ -434,169 +434,182 @@ void loop()
                     if (++fade[a][1]==fade[a][2]) fade[a][0]=0;
                     analogWrite(a,pgm_read_word_near(ledTable+fade[a][1]));
                 }
-                    if (fade[a][1]>fade[a][2])
-                    {
-                        if (--fade[a][1]==fade[a][2]) fade[a][0]=0;
-                        analogWrite(a,pgm_read_word_near(ledTable+fade[a][1]));
-                    }
+                if (fade[a][1]>fade[a][2])
+                {
+                    if (--fade[a][1]==fade[a][2]) fade[a][0]=0;
+                    analogWrite(a,pgm_read_word_near(ledTable+fade[a][1]));
                 }
             }
-        }  
-    
-    }
-    
-    // function that executes whenever data is requested by master
-    // this function is registered as an event, see setup()
-    void requestEvent()
-    {   // executata la trimitere Event la ESP8266 dupa intrebare
-        retparams[2]=busy;
-        Wire.write(retparams,3); 
-    }
-    
-    // function that executes whenever data is requested by master
-    // this function is registered as an event, see setup()
-    void receiveEvent(int count)
-    {    // executata la receptionare Event de la ESP8266
-        busy=1;
-        int a;
-        int tcount;
-        tcount=count;
-        paramp=0;
-        for (a=0;a<6;a++) params[a]=0; 
-        // Nothing time consuming or visual debugging in here if a RETURN VALUE is expected or the routine to send a byte back could be missed.
-        while ((tcount--)&&(paramp<128))
-        {
-            params[paramp++]=Wire.read(); 
         }
-        switch (params[0])
-        {
-            case SET_OUTPUT: // seteaza OUTPUT
-                if (ports[params[1]]!=1)
-                {
-                    ports[params[1]]=1; pinMode(params[1],OUTPUT);
-                } 
-                digitalWrite(params[1],params[2]? HIGH : LOW); 
-                break;
-            case READ_INPUT: // citeste INPUT
-                if (ports[params[1]]!=2)
-                {
-                    ports[params[1]]=2;
-                    pinMode(params[1],INPUT);
-                } 
-                retparams[0]=0;
-                retparams[1]=digitalRead(params[1]); 
-                break;
-            case READ_INPUT_PULLUP: // citeste INPUT cu PULLUP
-                if (ports[params[1]]!=3)
-                {
-                    ports[params[1]]=3;
-                    pinMode(params[1],INPUT_PULLUP);
-                } 
-                retparams[0]=0;
-                retparams[1]=digitalRead(params[1]); 
-                break;          
-            case SET_PWM: // seteaza PWM
-                if (ports[params[1]]!=4)
-                {
-                    ports[params[1]]=4;
-                    pinMode(params[1],OUTPUT);
-                } 
-                analogWrite(params[1],params[2]); 
-                break;
-            case READ_ANALOG: // citeste intrarea ANALOG
-                if (ports[params[1]]!=2)
-                {
-                    ports[params[1]]=2;
-                    pinMode(params[1],INPUT);
-                } 
-                uint16_t anback;
-                anback=analogRead(params[1]);
-                retparams[0]=anback>>8;
-                retparams[1]=anback&255;
-                break;    
-            case SET_ADDRESS: // seteaza adresa I2C - initial "9"
-                stored.device=params[1];
-                EEPROM.put(STRUCTBASE,stored);
-                // update address - will take effect on next powerup of the device as you 
-                // can only call "begin" once
-                break;
-            case SEROUT: 
-                char *m; // SERIAL OUT
-                m=(char *)&params[1];
-                Serial.print(m);
-                break;
-            case SERVO : 
-                if (ports[params[1]]!=5)
-                {
-                    ports[params[1]]=5;
-                    myservos[params[1]].attach(params[1]);
-                }  // executie SERVO MOTOR
-                if (params[2]==255)
-                {
-                    myservos[params[1]].detach();
-                    ports[params[1]]=0; break;
-                }
-                myservos[params[1]].write(params[2]);
-                break; 
-            case FADE: // FADE pentru LED
-                if (ports[params[1]]!=4)
-                {
-                    ports[params[1]]=4;
-                    pinMode(params[1],OUTPUT);
-                } 
-                fade[params[1]][0]=1;
-                fade[params[1]][2]=params[2];
-                break;  
-    
-            case TONE:  // can't do PWM on pins 2 and 11 while doing this... only one pin at a time...use NOTONE when finished
-                if ((params[4]|params[5])==0) tone(params[1],(params[2]<<8)+params[3]);
-                else tone(params[1],(params[2]<<8)+params[3],(params[4]<<8)+params[5]); 
-                ports[params[1]]=0;
-                break; 
-            case NOTONE:  // can't do PWM on pins 3 and 11 while doing TONE...
-                noTone(params[1]); ports[params[1]]=0; 
-                break;
-            case DALLAS1: // senzor temperatura 1
-                tr1=dallas(params[1]); 
-                if (params[1]!=stored.t1)
-                {
-                    stored.t1=params[1];
-                    EEPROM.put(STRUCTBASE,stored);
-                } // no delay hence first value crap
-                retparams[1]=tr1&255;
-                retparams[0]=tr1>>8; 
-                break;
-            case DALLAS2: // senzor temperatura 2
-                tr2=dallas(params[1]); 
-                if (params[1]!=stored.t2)
-                {
-                    stored.t2=params[1];
-                    EEPROM.put(STRUCTBASE,stored);
-                }   // no delay hence first value crap
-                retparams[1]=tr2&255;
-                retparams[0]=tr2>>8;
-                break;
-            case ARMING: // armare sistem
-                alarm_armed = true;
-                break;
-            case DISARMING:
-                alarm_armed = false;
-                break;
-            case ALARM:
-                alarm = true
-                break;
-            case PROGRAMMING:
-                break;
-                
-            default: break;  
-        }
-        busy=0;
     }
     //==============================
     //###### MEGA PERIPHERIAL ######
     
-
     //###### ALARM FUNCTION ######
     //============================
+
+    
+
+    //============================
+    //###### ALARM FUNCTION ######
+
 }
+
+//###### MEGA PERIPHERIAL ######
+//==============================
+
+// function that executes whenever data is requested by master
+// this function is registered as an event, see setup()
+void requestEvent()
+{   // executata la trimitere Event la ESP8266 dupa intrebare
+    retparams[2]=busy;
+    Wire.write(retparams,3); 
+}
+
+// function that executes whenever data is requested by master
+// this function is registered as an event, see setup()
+void receiveEvent(int count)
+{    // executata la receptionare Event de la ESP8266
+    busy=1;
+    int a;
+    int tcount;
+    tcount=count;
+    paramp=0;
+    for (a=0;a<6;a++) params[a]=0; 
+    // Nothing time consuming or visual debugging in here if a RETURN VALUE is expected or the routine to send a byte back could be missed.
+    while ((tcount--)&&(paramp<128))
+    {
+        params[paramp++]=Wire.read(); 
+    }
+    switch (params[0])
+    {
+        case SET_OUTPUT: // seteaza OUTPUT
+        if (ports[params[1]]!=1)
+        {
+            ports[params[1]]=1; pinMode(params[1],OUTPUT);
+        } 
+        digitalWrite(params[1],params[2]? HIGH : LOW); 
+        break;
+        case READ_INPUT: // citeste INPUT
+        if (ports[params[1]]!=2)
+        {
+            ports[params[1]]=2;
+            pinMode(params[1],INPUT);
+        } 
+        retparams[0]=0;
+        retparams[1]=digitalRead(params[1]); 
+        break;
+        case READ_INPUT_PULLUP: // citeste INPUT cu PULLUP
+        if (ports[params[1]]!=3)
+        {
+            ports[params[1]]=3;
+            pinMode(params[1],INPUT_PULLUP);
+        } 
+        retparams[0]=0;
+        retparams[1]=digitalRead(params[1]); 
+        break;          
+        case SET_PWM: // seteaza PWM
+        if (ports[params[1]]!=4)
+        {
+            ports[params[1]]=4;
+            pinMode(params[1],OUTPUT);
+        } 
+        analogWrite(params[1],params[2]); 
+        break;
+        case READ_ANALOG: // citeste intrarea ANALOG
+        if (ports[params[1]]!=2)
+        {
+            ports[params[1]]=2;
+            pinMode(params[1],INPUT);
+        } 
+        uint16_t anback;
+        anback=analogRead(params[1]);
+        retparams[0]=anback>>8;
+        retparams[1]=anback&255;
+        break;    
+        case SET_ADDRESS: // seteaza adresa I2C - initial "9"
+        stored.device=params[1];
+        EEPROM.put(STRUCTBASE,stored);
+        // update address - will take effect on next powerup of the device as you 
+        // can only call "begin" once
+        break;
+        case SEROUT: 
+        char *m; // SERIAL OUT
+        m=(char *)&params[1];
+        Serial.print(m);
+        break;
+        case SERVO : 
+        if (ports[params[1]]!=5)
+        {
+            ports[params[1]]=5;
+            myservos[params[1]].attach(params[1]);
+        }  // executie SERVO MOTOR
+        if (params[2]==255)
+        {
+            myservos[params[1]].detach();
+            ports[params[1]]=0; break;
+        }
+        myservos[params[1]].write(params[2]);
+        break; 
+        case FADE: // FADE pentru LED
+        if (ports[params[1]]!=4)
+        {
+            ports[params[1]]=4;
+            pinMode(params[1],OUTPUT);
+        } 
+        fade[params[1]][0]=1;
+        fade[params[1]][2]=params[2];
+        break;  
+        
+        case TONE:  // can't do PWM on pins 2 and 11 while doing this... only one pin at a time...use NOTONE when finished
+        if ((params[4]|params[5])==0) tone(params[1],(params[2]<<8)+params[3]);
+        else tone(params[1],(params[2]<<8)+params[3],(params[4]<<8)+params[5]); 
+        ports[params[1]]=0;
+        break; 
+        case NOTONE:  // can't do PWM on pins 3 and 11 while doing TONE...
+        noTone(params[1]); ports[params[1]]=0; 
+        break;
+        case DALLAS1: // senzor temperatura 1
+        tr1=dallas(params[1]); 
+        if (params[1]!=stored.t1)
+        {
+            stored.t1=params[1];
+            EEPROM.put(STRUCTBASE,stored);
+        } // no delay hence first value crap
+        retparams[1]=tr1&255;
+        retparams[0]=tr1>>8; 
+        break;
+        case DALLAS2: // senzor temperatura 2
+        tr2=dallas(params[1]); 
+        if (params[1]!=stored.t2)
+        {
+            stored.t2=params[1];
+            EEPROM.put(STRUCTBASE,stored);
+        }   // no delay hence first value crap
+        retparams[1]=tr2&255;
+        retparams[0]=tr2>>8;
+        break;
+        case ARMING: // armare sistem
+        alarm_armed = true;
+        break;
+        case DISARMING:
+        alarm_armed = false;
+        break;
+        case ALARM:
+        alarm = true
+        break;
+        case PROGRAMMING:
+        break;
+        
+        default: break;  
+    }
+    busy=0;
+}
+//==============================
+//###### MEGA PERIPHERIAL ######
+
+
+//###### ALARM FUNCTION ######
+//============================
+
 
