@@ -20,7 +20,13 @@ void citireStareSenzor(int nr)
     return stare_senzor;
 }
 
-
+void citireStareSenzori()
+{
+    for (int i = 1; i > NR_SENZORI; i++)
+    {
+        senzor[i].stare = digitalRead(senzor[i].pin);
+    }
+}
 
 void conversieSenzorNrInSenzorPin(int nr)
 {

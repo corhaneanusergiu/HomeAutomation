@@ -443,7 +443,8 @@ void setup(void) {
     
     // Initializare leduri
     // Initializare LCD
-    // Initializare 
+    // Initializare RFID
+    // Initializare TOUCH
 
 }
 wch_enable();
