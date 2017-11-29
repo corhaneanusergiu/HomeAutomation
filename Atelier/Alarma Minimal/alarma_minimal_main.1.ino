@@ -150,33 +150,12 @@
 //#define 68 // A13
 //#define 69 // A14
 //
-//
-
-//------ LCD VARIABLES ------
-// PENTRU VARIANTA 2 - DE INTRODUS SI LCD
-/*
-#define LCD_I2C_ADDR    0x27  // Define I2C Address where the PCF8574A is
-#define BACKLIGHT_PIN     3
-#define En_pin  2
-#define Rw_pin  1
-#define Rs_pin  0
-#define D4_pin  4
-#define D5_pin  5
-#define D6_pin  6
-#define D7_pin  7
-LiquidCrystal_I2C lcd(LCD_I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
-int lcd_message_timeout = 8000; // 10 seconds
-PGM_P lcd_message;
-char lcd_message_str[30];
-char lcd_welcome_message[20]; 
-int lcd_status;
-char tmp_char;
-*/
+ //
 
 
 //------ SENSOR SETTINGS ------
 #define NR_SENZORI 14
-#define SENZOR_NULL 0 // senzor neactivat
+#define SENZOR_NULL 0 // senzor neactivat (inexistent, inainte de setare)
 #define REED 1
 #define PIR 2
 #define FUM 3
@@ -185,22 +164,11 @@ char tmp_char;
 //------ ALARM STATE ------
 #define PROGRAMARE 0
 #define DEZARMAT 1
-#define ARMAT 2
-#define ALARMA 3
-#define INCENDIU 4
-#define GAZ 5
-
-//------ VARIABILE OPTIUNI-------
-//Acestea sunt doar setarile initiale, pot fi reconfigurate in program
-int activat_control_lumina_lcd = 1;
-int reactivare_senzor = 0;
-unsigned long pauza_alarma = 1000; //set waiting time before turning off the siren once the sensor alarm is off
-unsigned long perioada_gratie = 10000; //alarm grace period
-unsigned long perioada_iluminat_lcd = 10000; //backlight duration
-unsigned long pauza_start_sirena = 5000; //avoid duplicate alarm start/stop request from webserver
-unsigned long pauza_asteptare_alarma = 300; //time before siren starts again while the alarm signal is alarmed
-int vol_de_la, vol_lao; //set pause for volumetric
-
+#define PERIMETRAL 2
+#define ARMAT 3
+#define ALARMA 4
+#define INCENDIU 5
+#define GAZ 6
 
 //------VARIABILE GENERALE-------
 
@@ -208,31 +176,33 @@ int vol_de_la, vol_lao; //set pause for volumetric
 #define contor_repornire 99
 #define adresa_stare_anterioara 100
 #define adresa_stare 101
+#define adresa_senzori 110 // 
+
+//Acestea sunt doar setarile initiale, //de configurat pentru modificare din tastatura
+int nr_reporniri_sistem = 0;
+int nr_max_reporniri_sistem = 5;
 
 
+int activat_control_lumina_lcd = 1;
+unsigned long perioada_iluminat_lcd = 10000; //durata iluminat lcd
+
+int reactivare_senzor = 0;
+unsigned long timp_asteptare_cod = 30000; //perioada de asteptare alarmare pentru introducere cod
+unsigned long timp_asteptare_pornire_sirena = 1000; //previne dublarea cererii de pornire/oprire a alarmei din retea
+unsigned long timp_asteptare_oprire_sirena = 1000; //seteaza timpul de asteptare inainte de inchiderea sirenei odata ce alarma sunt dezactivata
+unsigned long timp_asteptare_repornire_sirena = 300; //timpul pana la repornirea sirenei in starea alarma
+unsigned long timp_asteptare_recitire_senzor = 500; //perioada dupa care se face recitirea senzorului pentru confirmarea starii
 int contor_alarma = 0;
-bool alarma_activata = false;
-bool supraveghere_volumetrica_activata = true;
-bool supraveghere_perimeru_activat = true;
+bool alarma_perimetru_armata = false;
 bool alarma_armata = false;
-bool alarma = false;
+bool alarma_activata = false;
+bool alarmare = false;
 bool sirena_alarma_pornita = false;
 bool asteptare_alarma = false;
 bool fortare_alarma = false;
 bool verificare_senzori_inainte_de_activare = false;
-long int pauza_alarma_ts;
-unsigned long pornit_sirena_ts = millis();
-unsigned long resetare_senzori_ts = millis();
-unsigned long alarm_standby_timeout_ts = millis();
-unsigned long alarm_delay_ts = millis();
-unsigned long grace_period_ts = millis();
-int prev_sec = 0;
-
-char tmp[30];
-int tmp_int;
-unsigned long tmp_ulong;
-unsigned long delay_ts;
-
+bool verificare_senzori_dupa_activare = true;
+bool verificare_senzori_dupa_alarmare = true;
 
 //============================
 //###### ALARM FUNCTION ######
@@ -242,7 +212,7 @@ unsigned long delay_ts;
 //###### MEGA PERIPHERIAL ######
 //==============================
 
-#define MAXPORTS 21
+#define MAXPORTS 68
 
 #define SET_OUTPUT  1
 #define READ_INPUT  2
@@ -260,6 +230,12 @@ unsigned long delay_ts;
 #define NOTONE 14
 #define DALLAS1 15
 #define DALLAS2 16
+#define ARMING 17
+#define DISARMING 18
+#define ALARM 19
+#define PROGRAMMING 20
+#define PERIMETRAL 21
+
 #define STRUCTBASE 0
 
 byte busy=0;
@@ -379,7 +355,7 @@ void setup(void) {
 
     //Initializare sirena alarma
     pinMode(SIRENA_EXT, OUTPUT); 
-    digitalWrite(SIRENA_EXT, LOW); //dezactivare sirena alarma!
+    digitalWrite(SIRENA_EXT, LOW); //dezactivare iesire sirena alarma!
 
     Serial.begin(115200);
   
@@ -387,20 +363,22 @@ void setup(void) {
 
 	Wire.begin();
 
-	//Initialize sensors
-	SerialPrint_P(PSTR("Initializare Senzori"), 1); // Initializare Senzori
-	for (int i = 0; i < sensor_number; i++) pinMode(sensors[i].pin, INPUT);
+	//Initializare senzori
+	SerialPrint_P(PSTR("Initializare Senzori"), 1);
+	for (int i = 0; i < NR_SENZORI; i++) pinMode(senzori[i].pin, INPUT);
 
 	sound(0);
-	SerialPrint_P(PSTR("ALARMA PORNITA"), 1); // Alarma pornita
+	SerialPrint_P(PSTR("ALARMA PORNITA"), 1);
 
-	log(PSTR("Start")); // Start
+	log(PSTR("Start"));
 
-	//read prev state in case of accidental reboot
-	if (EEPROM.read(prev_stat_address) == 1) {
-		if (EEPROM.read(prev_stat_address + 1) == 1) enable_perimetral = true;
-		if (EEPROM.read(prev_stat_address + 2) == 1) enable_volumetric = true;
-		alarm_start(true);
+	//citeste starea anterioara in caz de repornire accidentala
+    int stare_anterioara = EEPROM.read(adresa_stare);
+
+    if (stare_anterioara == 2) {
+		)alarma_perimetru_armata = true;
+		if (EEPROM.read(adresa_stare_anterioara + 2) == 1)ala enable_volumetric = true;
+		alarm_start(true);pornire_alarma(true);
 	}
 	wch_enable();
 }
