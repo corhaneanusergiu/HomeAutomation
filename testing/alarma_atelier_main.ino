@@ -150,6 +150,15 @@
 //
 //
 
+// Module sistem - activare
+int MODUL_SERIAL = 1;
+int MODUL_LCD = 0;
+int MODUL_RFID = 0;
+int MODUL_TOUCH = 0;
+int MODUL_TEMP = 0;
+int MODUL_FUM = 0;
+int MODUL_GAZE = 0;
+
 // Stare sistem
 #define PROGRAMARE 0
 #define DEZARMAT 1
