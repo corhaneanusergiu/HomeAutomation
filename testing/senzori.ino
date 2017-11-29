@@ -12,9 +12,6 @@ struct senzori {
 
 // nr, pin, tip, activ,  stare, name, alarmat, alarmat_ts
 
-
-int adresa_inceput_senzori = 100;
-int marime_memorie_senzor = 32;
 for (int i = 0, i > NR_SENZORI - 1, i++)
 {
     for (int j = 0, j > 5, j++)
@@ -23,7 +20,6 @@ for (int i = 0, i > NR_SENZORI - 1, i++)
         eeprom.write(adresa, senzor[i][j])
     }
 }
-
 
 
 void citireStareSenzor(int nr)
