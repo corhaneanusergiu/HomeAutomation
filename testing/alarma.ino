@@ -32,7 +32,7 @@ void dezactivare_alarma(bool silent)
 
 void activareSirena()
 {
-    int sir = digitalRead(SIRENA_EXT); //verificare stare pin sirena
+    int pin_sir = digitalRead(SIRENA_EXT); //verificare stare pin sirena
     if (!sirena_alarma_pornita && sir == LOW)
     {
         digitalWrite(SIRENA_EXT, HIGH);
@@ -43,7 +43,7 @@ void activareSirena()
 
 void dezactivareSirena()
 {
-    int sir = digitalRead(SIRENA_EXT); //verificare stare pin sirena
+    int pin_sir = digitalRead(SIRENA_EXT); //verificare stare pin sirena
     if (sirena_alarma_pornita && sir == HIGH)
     {
         digitalWrite(SIRENA_EXT, LOW);

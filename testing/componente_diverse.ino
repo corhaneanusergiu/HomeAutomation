@@ -68,6 +68,7 @@ int decimal(double x)
 	return temp - temp2;
 }
 
+//###### WCH ######
 void wch_enable()
 {
   if (WCH_ENABLED) wdt_enable(WDTO_8S);

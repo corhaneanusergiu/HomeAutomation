@@ -351,8 +351,7 @@ int16_t dallas (int x)
 
 
 void setup(void) {
-    
-    
+        
     //###### MEGA PERIPHERIAL ######
     //==============================
     // NO serial if using using 0-7 as port expansion (I'm not)
