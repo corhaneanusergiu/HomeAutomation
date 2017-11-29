@@ -413,8 +413,11 @@ void setup(void) {
     pinMode(SIRENA_INT, OUTPUT); 
 
     // Initializare serial
-    Serial.begin(115200);
-    
+    if (MODUL_SERIAL == 1)
+    {
+        Serial.begin(115200);    
+    }
+        
     SerialPrint_P(PSTR("Alarma Atelier 1.0 BOOTARE"), 1); // Alarma Atelier 1.0 Initializare
     
 	Wire.begin();
