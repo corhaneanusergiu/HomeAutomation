@@ -152,6 +152,7 @@
 
 // Module sistem - activare
 int MODUL_SERIAL = 1;
+int MODUL_TASTATURA = 0;
 int MODUL_LCD = 0;
 int MODUL_RFID = 0;
 int MODUL_TOUCH = 0;
