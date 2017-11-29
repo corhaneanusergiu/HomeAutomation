@@ -195,4 +195,6 @@ senzori senzor[] =
 };
 
 // adrese EEPROM
-#define EE_
+#define EE_STARE_ANTERIOARA_ALARMA 10
+#define EE_STARE_ALARMA 11
+
