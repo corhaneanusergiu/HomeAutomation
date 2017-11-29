@@ -414,13 +414,12 @@ void setup(void) {
     
 	log(PSTR("Start"));
     
-	//citeste starea anterioara in caz de repornire accidentala
-    int stare_anterioara = EEPROM.read(adresa_stare);
+	// verificare starea anterioara in caz de repornire accidentala
+    if (EEPROM.read(adresa_stare) != null)
+    {
+        stare_alarma = EEPROM.read(adresa_stare);        
+    }
     
-    if (stare_anterioara == 2) {
-    )alarma_perimetru_armata = true;
-    if (EEPROM.read(adresa_stare_anterioara + 2) == 1)ala enable_volumetric = true;
-    alarm_start(true);pornire_alarma(true);
 }
 wch_enable();
 }
