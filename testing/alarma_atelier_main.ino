@@ -73,7 +73,8 @@
 #include <dht.h>
 #include <SoftwareSerial.h>
 #include <avr/wdt.h>
-
+#include <string>
+#include "lcd.ino" // de verificat
 
 //------ PINS ARDUINO MEGA 2560 ------
 
@@ -153,7 +154,7 @@
 // Module sistem - activare
 int MODUL_SERIAL = 1;
 int MODUL_TASTATURA = 0;
-int MODUL_LCD = 0;
+int MODUL_LCD = 1;
 int MODUL_RFID = 0;
 int MODUL_TOUCH = 0;
 int MODUL_TEMP = 0;
@@ -203,6 +204,24 @@ senzori senzor[] =
 	{ 14, 35, 1400, 0, false, HIGH, "SENZOR_14", true, 0 },
 };
 
+//------LCD VARIABLES---------
+#define LCD_I2C_ADDR 0x27  // Defineste adresa I2C PCF8574A LCD 20x4
+#define BACKLIGHT_PIN 3
+#define En_pin 2
+#define Rw_pin 1
+#define Rs_pin 0
+#define D4_pin 4
+#define D5_pin 5
+#define D6_pin 6
+#define D7_pin 7
+LiquidCrystal_I2C lcd(LCD_I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
+int lcd_message_timeout = 5000;
+PGM_P lcd_message;
+char lcd_message_str[30];
+char lcd_welcome_message[20]; 
+int lcd_status;
+char tmp_char;
+
 //------VARIABILE GENERALE-------
 
 // Adrese din EEPROM
@@ -210,11 +229,12 @@ senzori senzor[] =
 #define EE_STARE_ANTERIOARA_ALARMA 50
 #define EE_STARE_ALARMA 51
 
-//Acestea sunt doar setarile initiale, 
+// Setarile initiale, 
 //de configurat pentru modificare din tastatura
 int nr_reporniri_sistem = 0;
 int nr_max_reporniri_sistem = 5;
 
+char stare_alarma_nume[10];
 int stare_alarma = 0;
 bool alarma_silentioasa = false;
 
@@ -225,8 +245,8 @@ unsigned long led_240v_ts = 0;
 unsigned long led_12v_ts = 0;
 unsigned long led_5v_ts = 0;
 unsigned long led_esp_ts = 0;
-int timp_led_puls_on = 200;
-int timp_led_puls_off = 200;
+int timp_led_puls_on = 300;
+int timp_led_puls_off = 300;
 
 int activat_control_lumina_lcd = 1;
 unsigned long perioada_iluminat_lcd = 10000; //durata iluminat lcd
@@ -431,16 +451,29 @@ void setup(void) {
 	log(PSTR("Start"));
     
 	// verificare starea anterioara in caz de repornire accidentala
+    SerialPrint_P(PSTR("Verific starea anterioara in EEPROM !"), 1);
     if (EEPROM.read(adresa_stare) != null)
     {
-        stare_alarma = EEPROM.read(adresa_stare);        
+        stare_alarma = EEPROM.read(adresa_stare);
+        
+        SerialPrint_P(PSTR("Stare anterioara in EEPROM: %s", stare_alarma), 1);
     }
     else
     {
         stare_alarma = PROGRAMARE;
     }
     
+    SerialPrint_P(PSTR("Verificat starea anterioara in EEPROM"), 1);
+
+
     // Initializare leduri
+    ledPornit(LED_240V);
+    ledPornit(LED_12V);
+    ledPornit(LED_5V);
+    ledPornit(LED_RGB_R);
+    ledPornit(LED_RGB_G);
+    ledPornit(LED_RGB_B);
+    
     // Initializare LCD
     // Initializare RFID
     // Initializare TOUCH

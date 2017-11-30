@@ -89,19 +89,35 @@ void wch_reset()
 //###### LED ######
 void ledPornit(int pin)
 {
-	digitalWrite(pin, HIGH);
+	if (digitalRead(pin) == LOW) digitalWrite(pin, HIGH);
 }
 
 void ledOprit(int pin)
 {
-	digitalWrite(pin, LOW);
+	if (digitalRead(pin) == HIGH) digitalWrite(pin, LOW);
 }
 
-void ledPuls(int pin)
+void ledPuls(int pin, unsigned long &led_ts, int timp_on = 300, int timp_off = 300)
+{// valoarea ts se transfera prin referinta (&led_ts) pentru modificare la baza
+
+	unsigned long curent_millis = millis();
+	int stare_led = digitalRead(pin);
+
+    if((stare_led == HIGH) && (curent_millis - led_ts >= timp_on))
+    {
+        stare_led = LOW;
+        led_ts = curent_millis;
+        digitalWrite(pin, stare_led);
+    }
+    else if ((stare_led == LOW) && (curent_millis - led_ts >= timp_off))
+    {
+        stare_led = HIGH;
+		led_ts = curent_millis;
+		digitalWrite(pin, stare_led);
+    }
+}
+
+void ledColor(void)
 {
-	unsigned long timp = millis();
-	int led_on = led_off = 200;
-	
-	digitalWrite(pin, HIGH);
+	return;
 }
-
