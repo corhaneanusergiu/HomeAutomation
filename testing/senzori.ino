@@ -7,7 +7,7 @@ struct senzori {
     int stare; //(HIGH) stare HIGH sau LOW (inchis / deschis)
     PGM_P nume; //(SENZOR_10) nume in clar (nr caractere limitat la dimensiune lcd, max 20) 
     int alarmat; //(true) starea de alarmare, activa (cuplat, contact inchis)
-    unsigned long int alarmat_ts; //(0) momentul la care a fost facuta alarmarea
+    unsigned long alarmat_ts; //(0) momentul la care a fost facuta alarmarea
 } senzor[];
 
 // seteaza stare, alarmat_timestamp la 0 si enabled to false
@@ -75,4 +75,19 @@ void comparareStareSenzori()
         if (senzor[i].stare != digitalRead(senzor[i].pin))
     }
     return;
+}
+
+void setareStareAlarmat(int nr)
+{
+    if  (senzor[nr].activ == true && digitalRead(senzor[nr].pin) == HIGH)
+    {
+        senzor[nr].stare = HIGH;
+        senzor[nr].alarmat = 1;
+        senzor[nr].alarmat_ts = millis();
+    }
+}
+
+void setareSenzorActiv(int nr, int a = 1)
+{
+    senzor[nr].activ = a;
 }
