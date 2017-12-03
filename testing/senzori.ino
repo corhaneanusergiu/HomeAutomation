@@ -1,3 +1,5 @@
+#include <android.h>
+
 struct senzori {
     int nr; //(10) numarul de ordine al senzorului
     int pin; //(31) pin legatura ARDUINO ATMEGA 2560
