@@ -181,7 +181,7 @@ int MODUL_GAZE = 0;
 #define TEMP 5
 
 // date senzori
-#define NR_SENZORI 14
+int nr_senzori = 14;
 
 // structura senzori
 senzori senzor[] = 
@@ -467,12 +467,24 @@ void setup(void) {
 
 
     // Initializare leduri
-    ledPornit(LED_240V);
-    ledPornit(LED_12V);
-    ledPornit(LED_5V);
-    ledPornit(LED_RGB_R);
-    ledPornit(LED_RGB_G);
-    ledPornit(LED_RGB_B);
+
+    pinMode(LED_240V, OUTPUT); 
+    digitalWrite(LED_240V, HIGH);
+
+    pinMode(LED_12V, OUTPUT); 
+    digitalWrite(LED_12V, HIGH);
+    
+    pinMode(LED_5V, OUTPUT); 
+    digitalWrite(LED_5V, HIGH);
+    
+    pinMode(LED_RGB_R, OUTPUT); 
+    digitalWrite(LED_RGB_R, HIGH);
+    
+    pinMode(LED_RGB_G, OUTPUT); 
+    digitalWrite(LED_RGB_G, HIGH);
+    
+    pinMode(LED_RGB_B, OUTPUT); 
+    digitalWrite(LED_RGB_B, HIGH);
     
     // Initializare LCD
     // Initializare RFID
@@ -480,7 +492,6 @@ void setup(void) {
 
 }
 wch_enable();
-}
 
 
 //============================
